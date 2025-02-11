@@ -44,18 +44,17 @@ protected:
 	float DeltaSecond; 
 
 	UFUNCTION()
-	void OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	virtual void OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* ItemMesh;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta =(AllowPrivateAccess= "true"))
 	float RunningTime;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* ItemMesh;
- 
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* Sphere;
