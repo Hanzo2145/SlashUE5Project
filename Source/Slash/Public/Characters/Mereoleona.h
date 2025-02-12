@@ -5,15 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Characters/CharacterTypes.h" //make sure to include the header file to make sure u can create the enum
 #include "Mereoleona.generated.h"
 
-class UCapsuleComponent;
-class USkeletalMeshComponent;
 class UInputMappingContext;
 class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 class UGroomComponent;
+class AItem;
 
 UCLASS()
 class SLASH_API AMereoleona : public ACharacter
@@ -56,6 +56,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* JumpAction;
 
+	// Added An Input Action Jump to the blueprint
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* EquipAction;
+	void Equip(); 
+
 
 private:
 	// Spring Arm Component
@@ -73,6 +78,21 @@ private:
 	// Adding Eyebrows Component
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UGroomComponent* Eyebrows;
+
+	UPROPERTY(VisibleInstanceOnly)
+	AItem* OverlappingItem;
+
+	//to create a variable of type custom Enum we decalar the Enum type followed by the Name of the variable and then assign it to the enum value. 
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+
+
+public:
+	//note: we have to use FORCEINLINE when create a setter and getters to force the compile to accept these functions.
+	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; } 
+
+	//we are making a public getter for the variable Character State so we can use it inside of the SlashAnimInstance
+	// A good policy is to make the getters const since u don't want them to change anything but only report what happened.
+	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 
 
 };

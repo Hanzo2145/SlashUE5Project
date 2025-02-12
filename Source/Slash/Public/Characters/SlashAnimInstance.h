@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Characters/CharacterTypes.h"
 #include "SlashAnimInstance.generated.h"
 
 UCLASS()
@@ -28,5 +29,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool IsFalling;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat | Character State")
+	ECharacterState CharacterState; 
 
 };

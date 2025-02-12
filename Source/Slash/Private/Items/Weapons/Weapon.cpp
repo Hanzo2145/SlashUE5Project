@@ -9,29 +9,22 @@ void AWeapon::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
     Super::OnSphereOverLap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-
-    // to Attach a weapon to a character we first include the Character header file then we cast to that charcter using Cast<>(OtherActor); 
-    // after that we store it in a pointer of value pointer to the character class. 
-    AMereoleona* SlashCharacter = Cast<AMereoleona>(OtherActor);
-
-    // we check to see if the cast was seccessful then we do the atttachment.
-    if (SlashCharacter)
-    {
-
-        // now to attach the weapon to the socket we need to fist get an AttachmentTransformRules by using TransfromRules(passing in EAttachmentRule::SnapToTarget, true) 
-        FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
-
-        /*then we get the mesh and call AttachToComponent we and passing in (first we get the variable by using the pointer->GetMesh(), then TransformRule(), 
-        then the name of the socket make sure it is Typed Right as it is Case sensative.)*/ 
-        ItemMesh->AttachToComponent(SlashCharacter->GetMesh(), TransformRules, FName("RightHandSocket"));
-    }
-    
-
 }
 
 
 void AWeapon::OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
     Super::OnShpererEndOverLap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+
+}
+
+void AWeapon::Equip(USceneComponent* InParent, FName InSocketName)
+{
+    // now to attach the weapon to the socket we need to fist get an AttachmentTransformRules by using TransfromRules(passing in EAttachmentRule::SnapToTarget, true) 
+    FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
+
+    /*then we get the mesh and call AttachToComponent we and passing in (first we get the variable by using the pointer->GetMesh(), then TransformRule(), 
+    then the name of the socket make sure it is Typed Right as it is Case sensative.)*/ 
+    ItemMesh->AttachToComponent(InParent, TransformRules, InSocketName); 
 
 }

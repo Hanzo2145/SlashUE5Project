@@ -4,6 +4,7 @@
 #include "Items/Item.h"
 #include "Slash/DebugMacros.h"
 #include "Components/SphereComponent.h"
+#include "Characters/Mereoleona.h"
 
 AItem::AItem()
 {
@@ -56,10 +57,14 @@ void AItem::Tick(float DeltaTime)
 
 void AItem::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	const FString OtherActorName = OtherActor->GetName();
-	if (GEngine)
+	// To make the character equip a weapon first we cast to the player by making a pointer of type Character then assinging it to the OtherActor. making sure the other actor is Character.
+	AMereoleona* SlashCharacter = Cast<AMereoleona>(OtherActor);
+
+	// then we check the pointer value to make sure it is not a nullptr
+	if (SlashCharacter)
 	{
-		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Blue, OtherActorName);
+		// if it successed we get the pointer and and use the Seter function we made and pass this as the AItem pointer which we made in the Character class. 
+		SlashCharacter->SetOverlappingItem(this); 
 	}
 	
 }
@@ -67,10 +72,11 @@ void AItem::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 void AItem::OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	const FString OverLappedComponentName = FString("Ending Overlap with: ") + OtherActor->GetName();
-	if (GEngine)
+	// in EndOverlap we are just removing the pointer and setting to nullptr
+	AMereoleona* SlashCharacter = Cast<AMereoleona>(OtherActor);
+	if (SlashCharacter)
 	{
-		GEngine->AddOnScreenDebugMessage(2, 10.f, FColor::Cyan, OverLappedComponentName);
+		SlashCharacter->SetOverlappingItem(nullptr); 
 	}
 	
 }

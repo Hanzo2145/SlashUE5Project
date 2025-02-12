@@ -11,6 +11,8 @@
 #include "Camera/CameraComponent.h" // to be able to add Camera Compoenent you need to include this Header. 
 #include "GameFramework/CharacterMovementComponent.h" // to be able to to use Character Movement Compoenent variables u need to include this header.
 #include "GroomComponent.h" // you need to include this header to use the Groom components functions and variables. also you need to add HairStrandsCore to .build.cs
+#include "Items/Item.h"	// we need to include both Item.h and Weapon.h for us to be able to use E Equio Function. 
+#include "Items/Weapons/Weapon.h"
 
 
 AMereoleona::AMereoleona()
@@ -79,6 +81,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
         EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMereoleona::Move);
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMereoleona::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMereoleona::Jump);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AMereoleona::Equip);
     }
 }
 
@@ -107,7 +110,6 @@ void AMereoleona::Look(const FInputActionValue& Value)
     }
 }
 
-
 void AMereoleona::Jump()
 {
 	if (bCanJump)
@@ -115,5 +117,21 @@ void AMereoleona::Jump()
 		Super::Jump();
 		bCanJump = false;
 	}
+}
+
+void AMereoleona::Equip()
+{
+	// To Equip a weapon onto the character mesh we first get the AWeapon pointer type and make a variable, then we Cast<AWeapon>(And assign the OverLapping function)
+	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
+	// then we check the pointer to make sure it is not a nullptr.
+	if (OverlappingWeapon)
+	{
+		// then we get the pointer and of tyoe AWeapon and access the Function Equip and pass in The mesh and the name of the socket.
+		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
+
+		//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon; 
+	}
+	
 }
 
