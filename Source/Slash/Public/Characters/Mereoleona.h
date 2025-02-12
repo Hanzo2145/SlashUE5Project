@@ -14,6 +14,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UGroomComponent;
 class AItem;
+class UAnimMontage;
 
 UCLASS()
 class SLASH_API AMereoleona : public ACharacter
@@ -56,11 +57,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* JumpAction;
 
-	// Added An Input Action Jump to the blueprint
+	// Added An Input Action Equip to the blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* EquipAction;
 	void Equip(); 
 
+	// Added An Input Action Equip to the blueprint
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* AttackAction;
+	void Attack(); 
 
 private:
 	// Spring Arm Component
@@ -84,6 +89,15 @@ private:
 
 	//to create a variable of type custom Enum we decalar the Enum type followed by the Name of the variable and then assign it to the enum value. 
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+
+
+	/*
+	* Animation Montages
+	*/
+	//
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* AttackMontage;
+
 
 
 public:

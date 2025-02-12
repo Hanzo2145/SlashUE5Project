@@ -13,6 +13,7 @@
 #include "GroomComponent.h" // you need to include this header to use the Groom components functions and variables. also you need to add HairStrandsCore to .build.cs
 #include "Items/Item.h"	// we need to include both Item.h and Weapon.h for us to be able to use E Equio Function. 
 #include "Items/Weapons/Weapon.h"
+#include "Animation/AnimMontage.h" // you need this header file to access the AnimMontage Functionality. 
 
 
 AMereoleona::AMereoleona()
@@ -82,6 +83,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMereoleona::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMereoleona::Jump);
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AMereoleona::Equip);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMereoleona::Attack);
     }
 }
 
@@ -135,3 +137,33 @@ void AMereoleona::Equip()
 	
 }
 
+void AMereoleona::Attack()
+{	
+	// we are getting the AnimInstance and storing it in a UAnimInstance Pointer
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	// we Check the Pointer to see if it is nullptr or not.
+	if (AnimInstance && AttackMontage)
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		int32 Selection = FMath::RandRange(0, 2);
+		FName SectionName = FName();
+		switch (Selection)
+		{
+		case 0:
+			SectionName = FName("Attack1");
+			break;
+		case 1:
+			SectionName = FName("Attack2");
+			break;
+		case 2:
+			SectionName = FName("Attack3");
+			break;
+		default:
+			break;
+		}
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+	}
+	
+
+}
