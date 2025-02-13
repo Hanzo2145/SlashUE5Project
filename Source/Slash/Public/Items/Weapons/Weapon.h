@@ -6,9 +6,9 @@
 #include "Items/Item.h"
 #include "Weapon.generated.h"
 
-/**
- * 
- */
+
+class USoundBase;
+
 UCLASS()
 class SLASH_API AWeapon : public AItem
 {
@@ -24,5 +24,9 @@ protected:
 
 	virtual void OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	USoundBase* EquipSound;
 	
 };

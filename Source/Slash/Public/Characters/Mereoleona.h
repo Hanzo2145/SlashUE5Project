@@ -101,6 +101,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void Disarm();
 
+	UFUNCTION(BlueprintCallable)
+	void Arm();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
 
 private:
 	// Spring Arm Component

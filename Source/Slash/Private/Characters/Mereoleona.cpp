@@ -89,7 +89,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AMereoleona::Move(const FInputActionValue& Value)
 {
-	if (ActionState == EActionState::EAS_Attacking)
+	if (ActionState != EActionState::EAS_Unoccupied)
 	{
 		return;
 	}
@@ -119,7 +119,7 @@ void AMereoleona::Look(const FInputActionValue& Value)
 
 void AMereoleona::Jump()
 {
-	if (ActionState == EActionState::EAS_Attacking)
+	if ((ActionState == EActionState::EAS_Attacking) || (ActionState == EActionState::EAS_EquippingWeapon))
 	{
 
 		return;
@@ -144,8 +144,8 @@ void AMereoleona::EKeyPressed()
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
 
 		//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
-		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon; 
-		EquippedWeapon = OverlappingWeapon; 
+		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon; 
+		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr; 
 	}
 	else
@@ -154,11 +154,13 @@ void AMereoleona::EKeyPressed()
 		{
 			PlayEquipMontage(FName("Unequip"));
 			CharacterState = ECharacterState::ECS_Unequipped;
+			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 		else if (CanArm())
 		{
 			PlayEquipMontage(FName("Equip"));
-			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 	}
 	
@@ -168,6 +170,7 @@ bool AMereoleona::CanDisarm()
 {
 	return (ActionState == EActionState::EAS_Unoccupied) && (CharacterState != ECharacterState::ECS_Unequipped);
 }
+
 bool AMereoleona::CanArm()
 {
 	return (ActionState == EActionState::EAS_Unoccupied) && (CharacterState == ECharacterState::ECS_Unequipped) && (EquippedWeapon != nullptr);
@@ -199,18 +202,21 @@ void AMereoleona::PlayAttackMontage()
 	if (AnimInstance && AttackMontage)
 	{
 		AnimInstance->Montage_Play(AttackMontage);
-		int32 Selection = FMath::RandRange(0, 2);
+		int32 Selection = FMath::RandRange(0, 2); 
 		FName SectionName = FName();
 		switch (Selection)
 		{
 		case 0:
 			SectionName = FName("Attack1");
+			
 			break;
 		case 1:
 			SectionName = FName("Attack2");
+			
 			break;
 		case 2:
 			SectionName = FName("Attack3");
+			 
 			break;
 		default:
 			break;
@@ -249,4 +255,17 @@ void AMereoleona::Disarm()
 		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
 	}
 	
+}
+
+void AMereoleona::Arm()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+	}
+}
+
+void AMereoleona::FinishEquipping()
+{
+	ActionState = EActionState::EAS_Unoccupied;
 }

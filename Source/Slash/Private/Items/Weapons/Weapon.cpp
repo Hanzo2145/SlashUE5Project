@@ -4,13 +4,14 @@
 #include "Items/Weapons/Weapon.h"
 #include "Characters/Mereoleona.h" // you need to include the ACharacter.h so u can cast to it. and get the other Actor
 #include "Characters/CharacterTypes.h"
+#include "Kismet/GameplayStatics.h" // you need to Include this header file to be able to use sounds functions.
+#include "Components/SphereComponent.h"
 
 void AWeapon::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     Super::OnSphereOverLap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 }
-
 
 void AWeapon::OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -20,9 +21,19 @@ void AWeapon::OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AAct
 
 void AWeapon::Equip(USceneComponent* InParent, FName InSocketName)
 {
-    
+    AttachMeshToSocket(InParent, InSocketName);
     ItemState = EItemState::EIS_Equipped;
-    AttachMeshToSocket(InParent, InSocketName); 
+    if (EquipSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, EquipSound, GetActorLocation());
+    }
+    
+    if (Sphere)
+    {
+        Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); 
+    }
+    
+    
 }
 
 void AWeapon::AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName)
