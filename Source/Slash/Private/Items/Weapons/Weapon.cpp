@@ -3,7 +3,7 @@
 
 #include "Items/Weapons/Weapon.h"
 #include "Characters/Mereoleona.h" // you need to include the ACharacter.h so u can cast to it. and get the other Actor
-
+#include "Characters/CharacterTypes.h"
 
 void AWeapon::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -26,5 +26,6 @@ void AWeapon::Equip(USceneComponent* InParent, FName InSocketName)
     /*then we get the mesh and call AttachToComponent we and passing in (first we get the variable by using the pointer->GetMesh(), then TransformRule(), 
     then the name of the socket make sure it is Typed Right as it is Case sensative.)*/ 
     ItemMesh->AttachToComponent(InParent, TransformRules, InSocketName); 
+    ItemState = EItemState::EIS_Equipped;
 
 }

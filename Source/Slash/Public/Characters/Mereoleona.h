@@ -15,6 +15,7 @@ class UCameraComponent;
 class UGroomComponent;
 class AItem;
 class UAnimMontage;
+class AWeapon;
 
 UCLASS()
 class SLASH_API AMereoleona : public ACharacter
@@ -34,11 +35,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCanJump(bool bcan) {bCanJump = bcan;}
 
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	bool bJumping = false;
+
+	UFUNCTION(BlueprintCallable)
+	void SetJumping(bool bactive) {bJumping = bactive;}
+
 
 
 protected:
 	virtual void BeginPlay() override;
 
+	/*
+	* Add Input Actions 
+	*/
 	// Added Mapping Context to the Blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputMappingContext* SlashMappingContext; 
@@ -60,12 +70,34 @@ protected:
 	// Added An Input Action Equip to the blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* EquipAction;
-	void Equip(); 
+	void EKeyPressed(); 
 
 	// Added An Input Action Equip to the blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* AttackAction;
 	void Attack(); 
+
+	/*
+		Play Montage Functions
+	*/
+	void PlayAttackMontage();
+
+	/*
+		Funtions and Variables that can decide things.
+	*/
+	//this will check to see if the attack ended and set the Action State to be Unoccupied
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
+	// this fucntion check and see if the player is not occupied with an action and if he has a weapon on.
+	bool CanAttack();
+	// this will set the ACtion state to be Attacking.
+	UFUNCTION(BlueprintCallable)
+	void AttackStart();
+
+	void PlayEquipMontage(FName SectionName);
+	bool CanDisarm();
+	bool CanArm();
+
 
 private:
 	// Spring Arm Component
@@ -87,8 +119,15 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
+	UPROPERTY(VisibleAnywhere, Category = Weapon)
+	AWeapon* EquippedWeapon; 
+	 
+
 	//to create a variable of type custom Enum we decalar the Enum type followed by the Name of the variable and then assign it to the enum value. 
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 
 	/*
@@ -97,6 +136,9 @@ private:
 	//
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* EquipMontage;
 
 
 
