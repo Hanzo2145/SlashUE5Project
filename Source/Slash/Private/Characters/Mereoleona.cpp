@@ -82,7 +82,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
         EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMereoleona::Move);
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMereoleona::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMereoleona::Jump);
-		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AMereoleona::EKeyPressed);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &AMereoleona::EKeyPressed);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMereoleona::Attack);
     }
 }
@@ -121,6 +121,7 @@ void AMereoleona::Jump()
 {
 	if (ActionState == EActionState::EAS_Attacking)
 	{
+
 		return;
 	}
 	if (bCanJump)
@@ -144,8 +145,8 @@ void AMereoleona::EKeyPressed()
 
 		//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
 		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon; 
-		OverlappingItem = nullptr; 
 		EquippedWeapon = OverlappingWeapon; 
+		OverlappingItem = nullptr; 
 	}
 	else
 	{
@@ -159,23 +160,17 @@ void AMereoleona::EKeyPressed()
 			PlayEquipMontage(FName("Equip"));
 			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 		}
-		
 	}
-	
 	
 }
 
 bool AMereoleona::CanDisarm()
 {
-    return ActionState == EActionState::EAS_Unoccupied && 
-		CharacterState != ECharacterState::ECS_Unequipped;
+	return (ActionState == EActionState::EAS_Unoccupied) && (CharacterState != ECharacterState::ECS_Unequipped);
 }
-
 bool AMereoleona::CanArm()
 {
-    return ActionState == EActionState::EAS_Unoccupied &&
-		CharacterState == ECharacterState::ECS_Unequipped &&
-		EquippedWeapon != nullptr;
+	return (ActionState == EActionState::EAS_Unoccupied) && (CharacterState == ECharacterState::ECS_Unequipped) && (EquippedWeapon != nullptr);
 }
 
 void AMereoleona::Attack()
@@ -228,7 +223,6 @@ void AMereoleona::PlayAttackMontage()
 void AMereoleona::PlayEquipMontage(FName SectionName)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
 	if (AnimInstance && EquipMontage)
 	{
 		AnimInstance->Montage_Play(EquipMontage);
@@ -246,4 +240,13 @@ void AMereoleona::AttackEnd()
 void AMereoleona::AttackStart()
 {
 	ActionState = EActionState::EAS_Attacking;
+}
+
+void AMereoleona::Disarm()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+	}
+	
 }

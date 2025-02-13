@@ -98,6 +98,9 @@ protected:
 	bool CanDisarm();
 	bool CanArm();
 
+	UFUNCTION(BlueprintCallable)
+	void Disarm();
+
 
 private:
 	// Spring Arm Component
@@ -120,7 +123,7 @@ private:
 	AItem* OverlappingItem;
 
 	UPROPERTY(VisibleAnywhere, Category = Weapon)
-	AWeapon* EquippedWeapon; 
+	AWeapon* EquippedWeapon;
 	 
 
 	//to create a variable of type custom Enum we decalar the Enum type followed by the Name of the variable and then assign it to the enum value. 
