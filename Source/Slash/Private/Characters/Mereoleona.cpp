@@ -144,7 +144,7 @@ void AMereoleona::EKeyPressed()
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
 
 		//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
-		CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon; 
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon; 
 		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr; 
 	}
@@ -159,7 +159,7 @@ void AMereoleona::EKeyPressed()
 		else if (CanArm())
 		{
 			PlayEquipMontage(FName("Equip"));
-			CharacterState = ECharacterState::ECS_EquippedTwoHandedWeapon;
+			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 	}
