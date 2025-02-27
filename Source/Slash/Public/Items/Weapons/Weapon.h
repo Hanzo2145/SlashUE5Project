@@ -23,9 +23,14 @@ public:
 
 protected:
 
+	virtual void BeginPlay() override;
+
 	virtual void OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 	virtual void OnShpererEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+
+	UFUNCTION()
+	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 
@@ -34,5 +39,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	UBoxComponent* WeaponBox;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	USceneComponent* BoxTraceStart;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	USceneComponent* BoxTraceEnd;
+public:
+	FORCEINLINE UBoxComponent* GetWeaponBox() const {return WeaponBox; }
 	
 };

@@ -41,6 +41,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetJumping(bool bactive) {bJumping = bactive;}
 
+	UFUNCTION(BlueprintCallable)
+	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
+
+
 
 
 protected:

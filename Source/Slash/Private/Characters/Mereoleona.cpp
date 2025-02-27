@@ -14,6 +14,7 @@
 #include "Items/Item.h"	// we need to include both Item.h and Weapon.h for us to be able to use E Equio Function. 
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h" // you need this header file to access the AnimMontage Functionality. 
+#include "Components/BoxComponent.h"
 
 
 AMereoleona::AMereoleona()
@@ -268,4 +269,13 @@ void AMereoleona::Arm()
 void AMereoleona::FinishEquipping()
 {
 	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void AMereoleona::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
+{
+	if (EquippedWeapon && (EquippedWeapon->GetWeaponBox()))
+	{
+		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
+	}
+	
 }
