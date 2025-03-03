@@ -227,7 +227,7 @@ void AMereoleona::PlayAttackMontage()
 	
 }
 
-void AMereoleona::PlayEquipMontage(FName SectionName)
+void AMereoleona::PlayEquipMontage(const FName& SectionName)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && EquipMontage)
