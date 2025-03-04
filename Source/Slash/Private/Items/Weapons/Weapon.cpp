@@ -75,11 +75,26 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent *OverlappedComponent, AActor *Oth
 {
     const FVector Start = BoxTraceStart->GetComponentLocation();
     const FVector End = BoxTraceEnd->GetComponentLocation();
-    TArray<AActor*> ActorsToIgnore; 
+    TArray<AActor*> ActorsToIgnore;
+
+
+    /* this for loop will add all the actor that got hit to the variable ActorsToIgnore which we pass to the BoxTraceSingle this way we won't hit the same enemy twice per hit.  */
+    for (AActor* Actor : IgnoreActors)
+    {
+        ActorsToIgnore.AddUnique(Actor); 
+    }
+
     ActorsToIgnore.Add(this);
     FHitResult BoxHit; 
 
-    UKismetSystemLibrary::BoxTraceSingle(this, Start, End, FVector(5.f, 5.f, 5.f), BoxTraceStart->GetComponentRotation(), ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, BoxHit, true);
+    UKismetSystemLibrary::BoxTraceSingle(this, 
+        Start, 
+        End, 
+        FVector(5.f, 5.f, 5.f), 
+        BoxTraceStart->GetComponentRotation(),
+        ETraceTypeQuery::TraceTypeQuery1, 
+        false, ActorsToIgnore, 
+        EDrawDebugTrace::None, BoxHit, true);
 
     if (BoxHit.GetActor())
     {
@@ -88,6 +103,7 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent *OverlappedComponent, AActor *Oth
         {
             HitInterface->GetHit(BoxHit.ImpactPoint);
         }
+        IgnoreActors.AddUnique(BoxHit.GetActor());
         
     }
 }

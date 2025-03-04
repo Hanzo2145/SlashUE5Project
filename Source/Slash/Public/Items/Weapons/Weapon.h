@@ -21,6 +21,9 @@ public:
 	void Equip(USceneComponent* InParent, FName InSocketName);
 	void AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName);
 
+	//this Array will store all of the actor that got hit with the attack and ignore them so they won't be hit again. 
+	TArray<AActor*> IgnoreActors;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -45,6 +48,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USceneComponent* BoxTraceEnd;
+
 public:
 	FORCEINLINE UBoxComponent* GetWeaponBox() const {return WeaponBox; }
 	

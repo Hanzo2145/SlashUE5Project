@@ -276,6 +276,7 @@ void AMereoleona::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEna
 	if (EquippedWeapon && (EquippedWeapon->GetWeaponBox()))
 	{
 		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
+		EquippedWeapon->IgnoreActors.Empty(); 
 	}
 	
 }
