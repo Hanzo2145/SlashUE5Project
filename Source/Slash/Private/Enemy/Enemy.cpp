@@ -100,9 +100,9 @@ void AEnemy::DirectionalHitReact(const FVector& ImpactPoint)
 
 	PlayHitReactMontage(Section);
 
-	/*
-	* debug stuff down here to see from where they enemy is getting hit.
 	
+	//debug stuff down here to see from where they enemy is getting hit.
+	/*
 	UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + CrossProduct * 100, 5.f, FColor::Blue, 5.f);
 
 	if (GEngine)

@@ -90,7 +90,7 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent *OverlappedComponent, AActor *Oth
     UKismetSystemLibrary::BoxTraceSingle(this, 
         Start, 
         End, 
-        FVector(5.f, 5.f, 5.f), 
+        FVector(10.f, 10.f, 10.f), 
         BoxTraceStart->GetComponentRotation(),
         ETraceTypeQuery::TraceTypeQuery1, 
         false, ActorsToIgnore, 
