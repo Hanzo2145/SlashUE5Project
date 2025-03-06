@@ -32,11 +32,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class UCapsuleComponent* Capsule;
 
+	UFUNCTION(BlueprintCallable)
+	void OnBreakEvent(const FChaosBreakEvent& BreakEvent);
+
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Breakable Properties")
 	TArray<TSubclassOf<ATreasure>> TreasureClasses;
 
+	bool bBroken = false; 
 
 public:	
 
