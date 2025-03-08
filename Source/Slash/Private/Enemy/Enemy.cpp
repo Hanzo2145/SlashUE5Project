@@ -7,7 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/AttributeComponent.h"
-#include "Components/WidgetComponent.h"
+#include "HUD/HealthBarWidget.h"
 
 
 
@@ -22,13 +22,18 @@ AEnemy::AEnemy()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	
 	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
-	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Health Bar Widget"));
+	HealthBarWidget = CreateDefaultSubobject<UHealthBarWidget>(TEXT("Health Bar Widget"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
 }
 
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetHealthPercent(1.f); 
+	}
 	
 }
 
