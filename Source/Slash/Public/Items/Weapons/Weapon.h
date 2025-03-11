@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Items/Item.h"
+#include "Characters/CharacterTypes.h"
 #include "Weapon.generated.h"
 
 
@@ -23,6 +24,9 @@ public:
 
 	//this Array will store all of the actor that got hit with the attack and ignore them so they won't be hit again. 
 	TArray<AActor*> IgnoreActors;
+
+	UPROPERTY(EditAnywhere)
+	ECharacterState WeaponState;
 
 protected:
 
