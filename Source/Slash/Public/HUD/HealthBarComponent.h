@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/WidgetComponent.h"
-#include "HealthBarWidget.generated.h"
+#include "HealthBarComponent.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SLASH_API UHealthBarWidget : public UWidgetComponent
+class SLASH_API UHealthBarComponent : public UWidgetComponent
 {
 	GENERATED_BODY()
 	

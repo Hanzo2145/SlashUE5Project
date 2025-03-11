@@ -142,7 +142,7 @@ void AMereoleona::EKeyPressed()
 	if (OverlappingWeapon)
 	{
 		// then we get the pointer and of tyoe AWeapon and access the Function Equip and pass in The mesh and the name of the socket.
-		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
+		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
 
 		//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
 		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon; 
@@ -203,7 +203,7 @@ void AMereoleona::PlayAttackMontage()
 	if (AnimInstance && AttackMontage)
 	{
 		AnimInstance->Montage_Play(AttackMontage);
-		int32 Selection = FMath::RandRange(0, 2); 
+		const int32 Selection = FMath::RandRange(0, 2); 
 		FName SectionName = FName();
 		switch (Selection)
 		{

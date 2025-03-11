@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "HUD/HealthBarWidget.h"
+#include "HUD/HealthBarComponent.h"
 #include "HUD/HealthBar.h"
 #include "Components/ProgressBar.h"
 
-void UHealthBarWidget::SetHealthPercent(float Percent)
+void UHealthBarComponent::SetHealthPercent(float Percent)
 {
 	if (HealthBarWidget == nullptr)
 	{
