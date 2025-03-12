@@ -139,7 +139,7 @@ void AMereoleona::EKeyPressed()
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
 
 	// then we check the pointer to make sure it is not a nullptr.
-	if (OverlappingWeapon)
+	if (OverlappingWeapon && (PossessState == EEquippingState::EES_Unequipped))
 	{
 		// then we get the pointer and of tyoe AWeapon and access the Function Equip and pass in The mesh and the name of the socket.
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
@@ -148,7 +148,7 @@ void AMereoleona::EKeyPressed()
 		CharacterState = OverlappingWeapon->WeaponState; 
 		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr; 
-
+		PossessState = EEquippingState::EES_Equipped; 
 	}
 	else
 	{
@@ -161,7 +161,14 @@ void AMereoleona::EKeyPressed()
 		else if (CanArm())
 		{
 			PlayEquipMontage(FName("Equip"));
-			CharacterState = OverlappingWeapon->WeaponState;
+			if (EquippedWeapon)
+			{
+				CharacterState = EquippedWeapon->WeaponState;
+			}
+			else
+			{
+				CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			}
 			ActionState = EActionState::EAS_EquippingWeapon;
 		}
 	}
@@ -199,6 +206,8 @@ void AMereoleona::PlayAttackMontage()
 {
 	// we are getting the AnimInstance and storing it in a UAnimInstance Pointer
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AWeapon* OverlappingWeapon = Cast<AWeapon>(EquippedWeapon);
+	UAnimMontage* AttackMontage = EquippedWeapon->AttackMontage;
 
 	// we Check the Pointer to see if it is nullptr or not.
 	if (AnimInstance && AttackMontage)

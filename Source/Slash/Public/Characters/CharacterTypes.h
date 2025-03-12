@@ -30,3 +30,11 @@ enum class EDeathPose : uint8
 	EDP_Death5 UMETA(DisplayName = "Death5"),
 	EDP_Death6 UMETA(DisplayName = "Death6")
 };
+
+UENUM(BlueprintType)
+enum class EEquippingState : uint8
+{
+	// we can make things more pretty for the blueprints and change their displayname. we do so by using the Specifier UMETA(DisplayName = "Displayneme"). 
+	EES_Unequipped UMETA(DisplayName = "Unequipped"),
+	EES_Equipped UMETA(DisplayName = "Equipped")
+};

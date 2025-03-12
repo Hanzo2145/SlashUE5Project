@@ -28,6 +28,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	ECharacterState WeaponState;
 
+	/*
+	*Animation Montages for the weapons
+	*/
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* AttackMontage;
+
 protected:
 
 	virtual void BeginPlay() override;
