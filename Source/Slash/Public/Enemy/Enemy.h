@@ -10,6 +10,8 @@
 class UAnimMontage;
 class UAttributeComponent;
 class UHealthBarComponent;
+class UAIPerceptionComponent;
+class UAISenseConfig_Sight;
 
 UCLASS()
 class SLASH_API AEnemy : public ACharacter, public IHitInterface
@@ -31,11 +33,23 @@ public:
 
 private:
 
+	/*
+	* Components
+	*/
+
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes; 
 
 	UPROPERTY(VisibleAnywhere)
 	UHealthBarComponent* HealthBarWidget;
+
+	UPROPERTY(VisibleAnywhere)
+	UAIPerceptionComponent* AIPerceptionComponent;
+
+	UPROPERTY(EditAnywhere)
+	UAISenseConfig_Sight* SightConfig;
+
+
 
 	/*
 	* Animation Montages
@@ -103,6 +117,8 @@ protected:
 	void MoveToTarget(AActor* Target);
 	AActor* ChoosePatrolTarget();
 
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 
 public:	

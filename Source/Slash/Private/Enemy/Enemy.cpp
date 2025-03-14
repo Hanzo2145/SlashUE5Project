@@ -1,16 +1,21 @@
 
 #include "Enemy/Enemy.h"
+#include "AIController.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Slash/DebugMacros.h"
-#include "Animation/AnimMontage.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/GameplayStatics.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
 #include "Components/AttributeComponent.h"
 #include "HUD/HealthBarComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "AIController.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Animation/AnimMontage.h"
+
+#include "Slash/DebugMacros.h"
+
+
 
 
 
@@ -27,6 +32,24 @@ AEnemy::AEnemy()
 	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("Health Bar Widget"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
+
+	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AI Perception Component"));
+	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
+
+	if (SightConfig)
+	{
+		SightConfig->SightRadius = 4000.f;
+		SightConfig->LoseSightRadius = 4200.f;
+		SightConfig->PeripheralVisionAngleDegrees = 45.f;
+
+		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+		AIPerceptionComponent->SetDominantSense(*SightConfig->GetSenseImplementation());
+		AIPerceptionComponent->ConfigureSense(*SightConfig);
+	}
+
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationPitch = false;
@@ -47,10 +70,15 @@ void AEnemy::BeginPlay()
 	{
 		HealthBarWidget->SetVisibility(false); 
 	}
-	
+
 	EnemyController = Cast<AAIController>(GetController());
 	MoveToTarget(PatrolTarget);
 
+	if (AIPerceptionComponent)
+	{
+		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::OnTargetPerceptionUpdated);
+
+	}
 }
 
 void AEnemy::Tick(float DeltaTime)
@@ -285,4 +313,16 @@ AActor* AEnemy::ChoosePatrolTarget()
 		return ValidTargets[RandomTarget];
 	}
 	return nullptr;
+}
+
+void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Perception: Saw actor %s"), *Actor->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Perception: Lost sight of %s"), *Actor->GetName());
+	}
 }
