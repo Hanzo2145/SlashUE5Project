@@ -54,8 +54,16 @@ void AMereoleona::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CreateEnhancedInput();
+
+	Tags.Add(FName("SlashCharacter"));
+
+}
+
+void AMereoleona::CreateEnhancedInput()
+{
 	//Crateing Enchanced Input Local Player Subsystem and Connecting it to the Mapping Context Call "Slash".  
-	if(APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		// Enabling Input Ensures that input system is Active. 
 		EnableInput(PlayerController);
@@ -64,7 +72,7 @@ void AMereoleona::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(SlashMappingContext, 0);
-		}	
+		}
 	}
 }
 

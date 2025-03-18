@@ -14,6 +14,7 @@
 #include "Animation/AnimMontage.h"
 
 #include "Slash/DebugMacros.h"
+#include <Characters/Mereoleona.h>
 
 
 
@@ -85,8 +86,15 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	CheckCombatTarget();
-	CheckPatrolTarget();
+	if (EnemyState > EEnemyState::EES_Patrolling)
+	{
+		CheckCombatTarget();
+	}
+	else
+	{
+		CheckPatrolTarget();
+	}
+	
 }
 
 void AEnemy::CheckPatrolTarget()
@@ -103,11 +111,31 @@ void AEnemy::CheckCombatTarget()
 {
 	if (!InTargetRange(CombatTarget, CombatRadius))
 	{
+		// Outside Combat Radius, lose interest
 		CombatTarget = nullptr;
 		if (HealthBarWidget)
 		{
 			HealthBarWidget->SetVisibility(false);
 		}
+		EnemyState = EEnemyState::EES_Patrolling;
+		GetCharacterMovement()->MaxWalkSpeed = PatrolingSpeed; 
+		MoveToTarget(PatrolTarget);
+		//UE_LOG(LogTemp, Warning, TEXT("Lose Interest"));
+	}
+	else if (!InTargetRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Chasing)
+	{
+		// OutSide attack Range, Chase Character
+		EnemyState = EEnemyState::EES_Chasing;
+		GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
+		MoveToTarget(CombatTarget);
+		//UE_LOG(LogTemp, Warning, TEXT("Chase Player"));
+	}
+	else if (InTargetRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Attacking)
+	{
+		// InSide Attack Range, attack Character
+		EnemyState = EEnemyState::EES_Attacking;
+		//UE_LOG(LogTemp, Warning, TEXT("Attack"));
+		// TODO: AttackMontage
 	}
 }
 
@@ -209,7 +237,10 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
 		
 	}
-	CombatTarget = EventInstigator->GetPawn(); 
+	CombatTarget = EventInstigator->GetPawn();
+	EnemyState = EEnemyState::EES_Chasing;
+	GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
+	MoveToTarget(CombatTarget); 
 	return DamageAmount;
 }
 
@@ -280,8 +311,6 @@ bool AEnemy::InTargetRange(AActor* Target, double Radius)
 {
 	if (Target == nullptr) return false;
 	const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
-	DRAW_SphereTick(GetActorLocation());
-	DRAW_SphereTick(Target->GetActorLocation());
 	return DistanceToTarget <= Radius;
 }
 
@@ -319,10 +348,18 @@ void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Perception: Saw actor %s"), *Actor->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Perception: Lost sight of %s"), *Actor->GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("Perception: Saw actor %s"), *Actor->GetName());
+		if (EnemyState == EEnemyState::EES_Chasing) return;
+		if (Actor->ActorHasTag(FName("SlashCharacter")))
+		{
+			GetWorldTimerManager().ClearTimer(PatrolTimer);
+			GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
+			CombatTarget = Actor;
+			if (EnemyState != EEnemyState::EES_Attacking)
+			{
+				EnemyState = EEnemyState::EES_Chasing;
+				MoveToTarget(CombatTarget);
+			}
+		}
 	}
 }

@@ -38,3 +38,11 @@ enum class EEquippingState : uint8
 	EES_Unequipped UMETA(DisplayName = "Unequipped"),
 	EES_Equipped UMETA(DisplayName = "Equipped")
 };
+
+UENUM(BlueprintType)
+enum class EEnemyState : uint8
+{ 
+	EES_Patrolling UMETA(DisplayName = "Patrolling"),
+	EES_Chasing UMETA(DisplayName = "Chasing"),
+	EES_Attacking UMETA(DisplayName = "Attacking")
+};
