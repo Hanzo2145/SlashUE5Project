@@ -215,7 +215,7 @@ void AMereoleona::PlayAttackMontage()
 	// we are getting the AnimInstance and storing it in a UAnimInstance Pointer
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(EquippedWeapon);
-	UAnimMontage* AttackMontage = EquippedWeapon->AttackMontage;
+	AttackMontage = EquippedWeapon->AttackMontage;
 
 	// we Check the Pointer to see if it is nullptr or not.
 	if (AnimInstance && AttackMontage)
@@ -287,14 +287,4 @@ void AMereoleona::Arm()
 void AMereoleona::FinishEquipping()
 {
 	ActionState = EActionState::EAS_Unoccupied;
-}
-
-void AMereoleona::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	if (EquippedWeapon && (EquippedWeapon->GetWeaponBox()))
-	{
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-		EquippedWeapon->IgnoreActors.Empty(); 
-	}
-	
 }

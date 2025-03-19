@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "InputActionValue.h"
 #include "Characters/CharacterTypes.h" //make sure to include the header file to make sure u can create the enum
 #include "Mereoleona.generated.h"
@@ -18,7 +18,7 @@ class UAnimMontage;
 class AWeapon;
 
 UCLASS()
-class SLASH_API AMereoleona : public ACharacter
+class SLASH_API AMereoleona : public ABaseCharacter
 {
 	GENERATED_BODY()
 	
@@ -40,9 +40,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetJumping(bool bactive) {bJumping = bactive;}
-
-	UFUNCTION(BlueprintCallable)
-	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
 
 
 
@@ -81,21 +78,20 @@ protected:
 	// Added An Input Action Equip to the blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* AttackAction;
-	void Attack(); 
+	virtual void Attack() override;
 
 	/*
 		Play Montage Functions
 	*/
-	void PlayAttackMontage();
+	virtual void PlayAttackMontage() override;
 
 	/*
 		Funtions and Variables that can decide things.
 	*/
 	//this will check to see if the attack ended and set the Action State to be Unoccupied
-	UFUNCTION(BlueprintCallable)
-	void AttackEnd();
+	virtual void AttackEnd() override;
 	// this fucntion check and see if the player is not occupied with an action and if he has a weapon on.
-	bool CanAttack();
+	virtual bool CanAttack() override;
 	// this will set the ACtion state to be Attacking.
 	UFUNCTION(BlueprintCallable)
 	void AttackStart();
@@ -133,10 +129,6 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
-	UPROPERTY(VisibleAnywhere, Category = Weapon)
-	AWeapon* EquippedWeapon;
-	 
-
 	//to create a variable of type custom Enum we decalar the Enum type followed by the Name of the variable and then assign it to the enum value. 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
@@ -147,12 +139,6 @@ private:
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EEquippingState PossessState = EEquippingState::EES_Unequipped; 
 
-
-	/*
-	* Animation Montages
-	*/
-	/*UPROPERTY(EditDefaultsOnly, Category = Montages)
-	UAnimMontage* AttackMontage;*/
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* EquipMontage;
