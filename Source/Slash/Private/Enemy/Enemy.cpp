@@ -142,11 +142,24 @@ void AEnemy::StartAttackTimer()
 	EnemyState = EEnemyState::EES_Attacking;
 	const float AttackTime = FMath::RandRange(AttackMin, AttackMax);
 	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
+	UE_LOG(LogTemp, Warning, TEXT("Start Attack Timer Was set, Enemy will attack again in %f"), AttackTime);
 }
 
 void AEnemy::ClearAttackTimer()
 {
 	GetWorldTimerManager().ClearTimer(AttackTimer);
+}
+
+void AEnemy::OnTargetDestroyed(AActor* DestroyedActor)
+{
+	if (CombatTarget == DestroyedActor)
+	{
+		CombatTarget = nullptr;
+		if (EnemyController)
+		{
+			EnemyController->StopMovement();
+		}
+	}
 }
 
 void AEnemy::BeginPlay()
@@ -173,6 +186,7 @@ void AEnemy::BeginPlay()
 		AWeapon* DefaultWeapon = World->SpawnActor<AWeapon>(WeaponClass);
 		DefaultWeapon->Equip(GetMesh(), FName("SwordSocket"), this, this);
 		EquippedWeapon = DefaultWeapon;
+		InitAttackMontage(DefaultWeapon);
 	}
 
 }
@@ -234,9 +248,7 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 	}
 	else 
 	{
-		ClearAttackTimer();
 		Die();
-		CombatTarget = nullptr;
 	}
 	PlayHitSound(ImpactPoint);
 	SpawnHitParticles(ImpactPoint);	
@@ -246,6 +258,10 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 {
 	AEnemy::HandleDamage(DamageAmount);
 	CombatTarget = EventInstigator->GetPawn();
+	if (CombatTarget)
+	{
+		CombatTarget->OnDestroyed.AddDynamic(this, &AEnemy::OnTargetDestroyed);
+	}
 	ChaseTarget();
 	return DamageAmount;
 }
@@ -260,54 +276,15 @@ void AEnemy::Destroyed()
 
 void AEnemy::Die()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && DeathMontage)
+	if (EnemyController)
 	{
-		AnimInstance->Montage_Play(DeathMontage);
-		const int32 Selection = FMath::RandRange(0, 5);
-		FName SectionName = FName();
-		switch (Selection)
-		{
-		case 0:
-			SectionName = FName("Death1");
-			DeathPose = EDeathPose::EDP_Death1;
-
-			break;
-		case 1:
-			SectionName = FName("Death2");
-			DeathPose = EDeathPose::EDP_Death2;
-			break;
-		case 2:
-			SectionName = FName("Death3");
-			DeathPose = EDeathPose::EDP_Death3;
-			break;
-		case 3:
-			SectionName = FName("Death4");
-			DeathPose = EDeathPose::EDP_Death4;
-			break;
-		case 4:
-			SectionName = FName("Death5");
-			DeathPose = EDeathPose::EDP_Death5;
-			break;
-		case 5 :
-			SectionName = FName("Death6");
-			DeathPose = EDeathPose::EDP_Death6;
-			break;
-		default:
-			break;
-		}
-
-		AnimInstance->Montage_JumpToSection(SectionName, DeathMontage);
+		EnemyController->StopMovement();
 	}
-
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SetLifeSpan(5.f);
-
-	if (HealthBarWidget)
-	{
-		HealthBarWidget->SetVisibility(false);
-	}
-
+	EnemyState = EEnemyState::EES_Dead;
+	PlayDeathMontage();
+	ClearAttackTimer();
+	DisableCapsule();
+	HideHealthBar();
 }
 
 bool AEnemy::InTargetRange(AActor* Target, double Radius)
@@ -323,7 +300,7 @@ void AEnemy::MoveToTarget(AActor* Target)
 	
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(Target);
-	MoveRequest.SetAcceptanceRadius(30.f);
+	MoveRequest.SetAcceptanceRadius(AcceptanceRadius);
 	EnemyController->MoveTo(MoveRequest);
 }
 
@@ -349,46 +326,16 @@ AActor* AEnemy::ChoosePatrolTarget()
 
 void AEnemy::Attack()
 {
+	EnemyState = EEnemyState::EES_Engaged;
 	Super::Attack();
 	PlayAttackMontage();
-}
-
-void AEnemy::PlayAttackMontage()
-{
-	Super::PlayAttackMontage();
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	AWeapon* Weapon = Cast<AWeapon>(EquippedWeapon);
-	AttackMontage = Weapon->AttackMontage;
-
-	if (AnimInstance && AttackMontage)
-	{
-		AnimInstance->Montage_Play(AttackMontage);
-		const int32 Section = FMath::RandRange(0, 2);
-		FName SectionName = FName(); 
-		switch (Section)
-		{
-		case 0:
-			SectionName = FName("Attack1");
-			break;
-		case 1:
-			SectionName = FName("Attack2");
-			break;
-		case 2:
-			SectionName = FName("Attack3");
-			break;
-
-		default:
-			break;
-		}
-		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
-	}
-
 }
 
 bool AEnemy::CanAttack()
 {
 	bool bCanAttack = IsInsideAttackRadius() &&
 		!IsAttacking() &&
+		!IsEngaged() &&
 		!IsDead();
 	return bCanAttack;
 }
@@ -400,6 +347,24 @@ void AEnemy::HandleDamage(float DamageAmount)
 	{
 		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
 	}
+}
+
+int32 AEnemy::PlayDeathMontage()
+{
+	const int32 Selection = Super::PlayDeathMontage();
+	TEnumAsByte<EDeathPose> Pose(Selection);
+	if (Pose < EDeathPose::EDP_MAX)
+	{
+		DeathPose = Pose;
+	}
+	return Selection; 
+}
+
+void AEnemy::AttackEnd()
+{
+	EnemyState = EEnemyState::EES_NoState;
+	CheckCombatTarget();
+
 }
 
 void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

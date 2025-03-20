@@ -56,7 +56,10 @@ private:
 	double CombatRadius = 900.f;
 
 	UPROPERTY(EditAnywhere)
-	double AttackRadius = 130.f;
+	double AttackRadius = 150.f;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	double AcceptanceRadius = 50.f;
 
 	/*
 	* Navigation
@@ -110,6 +113,7 @@ private:
 	/*_Combat_*/
 	void StartAttackTimer();
 	void ClearAttackTimer();
+	void OnTargetDestroyed(AActor* DestroyedActor);
 
 	FTimerHandle AttackTimer;
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -122,7 +126,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose;
+	TEnumAsByte<EDeathPose> DeathPose;
 
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
@@ -135,9 +139,10 @@ protected:
 	void MoveToTarget(AActor* Target);
 	AActor* ChoosePatrolTarget();
 	virtual void Attack() override;
-	virtual void PlayAttackMontage() override;
 	virtual bool CanAttack() override;
 	virtual void HandleDamage(float DamageAmount) override;
+	virtual int32 PlayDeathMontage() override;
+	virtual void AttackEnd() override;
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);

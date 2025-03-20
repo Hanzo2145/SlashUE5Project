@@ -83,7 +83,6 @@ protected:
 	/*
 		Play Montage Functions
 	*/
-	virtual void PlayAttackMontage() override;
 
 	/*
 		Funtions and Variables that can decide things.

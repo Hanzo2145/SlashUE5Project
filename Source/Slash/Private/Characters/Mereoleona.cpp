@@ -157,6 +157,7 @@ void AMereoleona::EKeyPressed()
 		EquippedWeapon = OverlappingWeapon;
 		OverlappingItem = nullptr; 
 		PossessState = EEquippingState::EES_Equipped; 
+		InitAttackMontage(EquippedWeapon);
 	}
 	else
 	{
@@ -209,42 +210,6 @@ bool AMereoleona::CanAttack()
 {
     return ActionState == EActionState::EAS_Unoccupied && 
 		CharacterState != ECharacterState::ECS_Unequipped;
-}
-
-void AMereoleona::PlayAttackMontage()
-{
-	Super::PlayAttackMontage();
-	// we are getting the AnimInstance and storing it in a UAnimInstance Pointer
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	AWeapon* OverlappingWeapon = Cast<AWeapon>(EquippedWeapon);
-	AttackMontage = EquippedWeapon->AttackMontage;
-
-	// we Check the Pointer to see if it is nullptr or not.
-	if (AnimInstance && AttackMontage)
-	{
-		AnimInstance->Montage_Play(AttackMontage);
-		const int32 Selection = FMath::RandRange(0, 2); 
-		FName SectionName = FName();
-		switch (Selection)
-		{
-		case 0:
-			SectionName = FName("Attack1");
-			
-			break;
-		case 1:
-			SectionName = FName("Attack2");
-			
-			break;
-		case 2:
-			SectionName = FName("Attack3");
-			 
-			break;
-		default:
-			break;
-		}
-		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
-	}
-	
 }
 
 void AMereoleona::PlayEquipMontage(const FName& SectionName)

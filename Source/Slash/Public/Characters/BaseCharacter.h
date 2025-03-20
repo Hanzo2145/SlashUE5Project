@@ -29,12 +29,18 @@ protected:
 	virtual void Attack();
 	virtual void Die();
 
-	virtual void PlayAttackMontage();
+	void InitAttackMontage(AWeapon* NewWeapon);
 	void PlayHitReactMontage(const FName& SectionName);
 	void DirectionalHitReact(const FVector& ImpactPoint);
 	void PlayHitSound(const FVector& ImpactPoint);
 	void SpawnHitParticles(const FVector& ImpactPoint);
 	virtual void HandleDamage(float DamageAmount); 
+	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
+	int32 PlayRandomMontageSection(UAnimMontage* Montage, const TArray<FName>& SectionNames);
+	virtual int32 PlayAttackMontage();
+	virtual int32 PlayDeathMontage();
+	void DisableCapsule();
+
 
 	/*
 	* Attack Functions
@@ -52,7 +58,7 @@ protected:
 	/*
 	* Animation Montages
 	*/
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UPROPERTY()
 	UAnimMontage* AttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
@@ -61,7 +67,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* DeathMontage;
 
+	TArray<FName> AttackMontageSections;
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TArray<FName> DeathMontageSections;
 
 	/*
 	* Components
@@ -69,6 +78,12 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
 
+
+	/*
+	* Variables
+	*/
+	UPROPERTY(EditAnywhere, Category = "DeathTimer")
+	float DeathTimer = 3.f;
 private:
 
 	UPROPERTY(EditAnywhere, Category = Sounds)
