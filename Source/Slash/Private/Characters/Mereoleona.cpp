@@ -195,6 +195,7 @@ bool AMereoleona::CanArm()
 
 void AMereoleona::Attack()
 {	
+	Super::Attack();
 	const bool bCanAttack = CanAttack() && bJumping == false;
 							
 	if (bCanAttack)
@@ -212,6 +213,7 @@ bool AMereoleona::CanAttack()
 
 void AMereoleona::PlayAttackMontage()
 {
+	Super::PlayAttackMontage();
 	// we are getting the AnimInstance and storing it in a UAnimInstance Pointer
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(EquippedWeapon);

@@ -21,7 +21,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void CheckPatrolTarget();
 	void CheckCombatTarget();
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 
@@ -57,7 +56,7 @@ private:
 	double CombatRadius = 900.f;
 
 	UPROPERTY(EditAnywhere)
-	double AttackRadius = 150.f;
+	double AttackRadius = 130.f;
 
 	/*
 	* Navigation
@@ -86,21 +85,47 @@ private:
 	float WaitMax = 10.f;
 
 	// Enemy State Variable.
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	float ChasingSpeed = 300.f;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	float PatrolingSpeed = 125.f;
 
-	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
+	/*
+	* AI Behavior
+	*/
+	void HideHealthBar();
+	void ShowHealthBar();
+	void LoseInterest();
+	void StartPatrolling();
+	void ChaseTarget();
+	bool IsOutsideCombatRadius();
+	bool IsOutsideAttackRadius();
+	bool IsInsideAttackRadius();
+	bool IsChasing();
+	bool IsAttacking();
+	bool IsDead();
+	bool IsEngaged(); 
+	void ClearPatrolTimer();
 
+	/*_Combat_*/
+	void StartAttackTimer();
+	void ClearAttackTimer();
+
+	FTimerHandle AttackTimer;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackMin = 0.5f;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackMax = 1.f;
 
 protected:
 	
 	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose = EDeathPose::EDP_Alive;
+	EDeathPose DeathPose;
 
+	UPROPERTY(BlueprintReadOnly)
+	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 	/*
 		Play Montage Functions
 	*/
@@ -109,6 +134,10 @@ protected:
 	bool InTargetRange(AActor* Target, double Radius);
 	void MoveToTarget(AActor* Target);
 	AActor* ChoosePatrolTarget();
+	virtual void Attack() override;
+	virtual void PlayAttackMontage() override;
+	virtual bool CanAttack() override;
+	virtual void HandleDamage(float DamageAmount) override;
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);

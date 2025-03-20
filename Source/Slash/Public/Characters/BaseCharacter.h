@@ -28,18 +28,20 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Attack();
 	virtual void Die();
-	/*
-		Play Montage Functions
-	*/
+
 	virtual void PlayAttackMontage();
 	void PlayHitReactMontage(const FName& SectionName);
 	void DirectionalHitReact(const FVector& ImpactPoint);
+	void PlayHitSound(const FVector& ImpactPoint);
+	void SpawnHitParticles(const FVector& ImpactPoint);
+	virtual void HandleDamage(float DamageAmount); 
 
 	/*
 	* Attack Functions
 	*/
 	// this fucntion check and see if the player is not occupied with an action and if he has a weapon on.
 	virtual bool CanAttack();
+	bool IsAlive();
 	//this will check to see if the attack ended and set the Action State to be Unoccupied
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
@@ -59,11 +61,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* DeathMontage;
 
-	UPROPERTY(EditAnywhere, Category = Sounds)
-	USoundBase* HitSound;
 
-	UPROPERTY(EditAnywhere, Category = VisualEffects)
-	UParticleSystem* HitParticles;
 
 	/*
 	* Components
@@ -73,6 +71,10 @@ protected:
 
 private:
 
-	
+	UPROPERTY(EditAnywhere, Category = Sounds)
+	USoundBase* HitSound;
+
+	UPROPERTY(EditAnywhere, Category = VisualEffects)
+	UParticleSystem* HitParticles;
 
 };

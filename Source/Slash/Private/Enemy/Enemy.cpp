@@ -12,7 +12,6 @@
 
 
 #include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "Animation/AnimMontage.h"
 
 #include "Slash/DebugMacros.h"
@@ -62,6 +61,94 @@ void AEnemy::PatrolTimerFinished()
 	MoveToTarget(PatrolTarget);
 }
 
+void AEnemy::HideHealthBar()
+{
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetVisibility(false);
+	}
+}
+
+void AEnemy::ShowHealthBar()
+{
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetVisibility(true);
+	}
+}
+
+void AEnemy::LoseInterest()
+{
+	CombatTarget = nullptr;
+	HideHealthBar();
+}
+
+void AEnemy::StartPatrolling()
+{
+	EnemyState = EEnemyState::EES_Patrolling;
+	GetCharacterMovement()->MaxWalkSpeed = PatrolingSpeed;
+	MoveToTarget(PatrolTarget);
+}
+
+void AEnemy::ChaseTarget()
+{
+	EnemyState = EEnemyState::EES_Chasing;
+	GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
+	MoveToTarget(CombatTarget);
+}
+
+bool AEnemy::IsOutsideCombatRadius()
+{
+	return !InTargetRange(CombatTarget, CombatRadius);
+}
+
+bool AEnemy::IsOutsideAttackRadius()
+{
+	return !InTargetRange(CombatTarget, AttackRadius);
+}
+
+bool AEnemy::IsInsideAttackRadius()
+{
+	return InTargetRange(CombatTarget, AttackRadius);
+}
+
+bool AEnemy::IsChasing()
+{
+	return EnemyState == EEnemyState::EES_Chasing;
+}
+
+bool AEnemy::IsAttacking()
+{
+	return EnemyState == EEnemyState::EES_Attacking;
+}
+
+bool AEnemy::IsDead()
+{
+	return EnemyState == EEnemyState::EES_Dead;
+}
+
+bool AEnemy::IsEngaged()
+{
+	return EnemyState == EEnemyState::EES_Engaged;
+}
+
+void AEnemy::ClearPatrolTimer()
+{
+	GetWorldTimerManager().ClearTimer(PatrolTimer);
+}
+
+void AEnemy::StartAttackTimer()
+{
+	EnemyState = EEnemyState::EES_Attacking;
+	const float AttackTime = FMath::RandRange(AttackMin, AttackMax);
+	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
+}
+
+void AEnemy::ClearAttackTimer()
+{
+	GetWorldTimerManager().ClearTimer(AttackTimer);
+}
+
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
@@ -93,7 +180,7 @@ void AEnemy::BeginPlay()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (IsDead()) return;
 	if (EnemyState > EEnemyState::EES_Patrolling)
 	{
 		CheckCombatTarget();
@@ -117,81 +204,49 @@ void AEnemy::CheckPatrolTarget()
 
 void AEnemy::CheckCombatTarget()
 {
-	if (!InTargetRange(CombatTarget, CombatRadius))
+	if (IsOutsideCombatRadius())
 	{
-		// Outside Combat Radius, lose interest
-		CombatTarget = nullptr;
-		if (HealthBarWidget)
-		{
-			HealthBarWidget->SetVisibility(false);
-		}
-		EnemyState = EEnemyState::EES_Patrolling;
-		GetCharacterMovement()->MaxWalkSpeed = PatrolingSpeed; 
-		MoveToTarget(PatrolTarget);
-		//UE_LOG(LogTemp, Warning, TEXT("Lose Interest"));
+		ClearAttackTimer();
+		LoseInterest();
+		if (!IsEngaged()) StartPatrolling();
+		UE_LOG(LogTemp, Warning, TEXT("Lose Interest"));
 	}
-	else if (!InTargetRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Chasing)
+	else if (IsOutsideAttackRadius() && !IsChasing())
 	{
-		// OutSide attack Range, Chase Character
-		EnemyState = EEnemyState::EES_Chasing;
-		GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
-		MoveToTarget(CombatTarget);
-		//UE_LOG(LogTemp, Warning, TEXT("Chase Player"));
+		ClearAttackTimer();
+		if (!IsEngaged()) ChaseTarget();
+		UE_LOG(LogTemp, Warning, TEXT("Chase Player"));
 	}
-	else if (InTargetRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Attacking)
+	else if (CanAttack())
 	{
-		// InSide Attack Range, attack Character
-		EnemyState = EEnemyState::EES_Attacking;
-		//UE_LOG(LogTemp, Warning, TEXT("Attack"));
-		// TODO: AttackMontage
+		StartAttackTimer();
+		UE_LOG(LogTemp, Warning, TEXT("Attack"));
 	}
-}
-
-void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
-	if (HealthBarWidget)
-	{
-		HealthBarWidget->SetVisibility(true);
-	}
-	//Draw_Sphere_Color(ImpactPoint, FColor::Cyan); 
-	if (Attributes && Attributes->IsAlive())
+	ShowHealthBar();
+
+	if (IsAlive())
 	{
 		DirectionalHitReact(ImpactPoint);
 	}
-	else
+	else 
 	{
+		ClearAttackTimer();
 		Die();
+		CombatTarget = nullptr;
 	}
-
-	if (HitSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
-	}
-
-	if (HitParticles)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, ImpactPoint);
-	}
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);	
 }
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (Attributes && HealthBarWidget)
-	{
-		Attributes->ReceiveDamage(DamageAmount); 
-		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
-		
-	}
+	AEnemy::HandleDamage(DamageAmount);
 	CombatTarget = EventInstigator->GetPawn();
-	EnemyState = EEnemyState::EES_Chasing;
-	GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
-	MoveToTarget(CombatTarget); 
+	ChaseTarget();
 	return DamageAmount;
 }
 
@@ -268,7 +323,7 @@ void AEnemy::MoveToTarget(AActor* Target)
 	
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(Target);
-	MoveRequest.SetAcceptanceRadius(15.f);
+	MoveRequest.SetAcceptanceRadius(30.f);
 	EnemyController->MoveTo(MoveRequest);
 }
 
@@ -292,22 +347,77 @@ AActor* AEnemy::ChoosePatrolTarget()
 	return nullptr;
 }
 
+void AEnemy::Attack()
+{
+	Super::Attack();
+	PlayAttackMontage();
+}
+
+void AEnemy::PlayAttackMontage()
+{
+	Super::PlayAttackMontage();
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AWeapon* Weapon = Cast<AWeapon>(EquippedWeapon);
+	AttackMontage = Weapon->AttackMontage;
+
+	if (AnimInstance && AttackMontage)
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		const int32 Section = FMath::RandRange(0, 2);
+		FName SectionName = FName(); 
+		switch (Section)
+		{
+		case 0:
+			SectionName = FName("Attack1");
+			break;
+		case 1:
+			SectionName = FName("Attack2");
+			break;
+		case 2:
+			SectionName = FName("Attack3");
+			break;
+
+		default:
+			break;
+		}
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+	}
+
+}
+
+bool AEnemy::CanAttack()
+{
+	bool bCanAttack = IsInsideAttackRadius() &&
+		!IsAttacking() &&
+		!IsDead();
+	return bCanAttack;
+}
+
+void AEnemy::HandleDamage(float DamageAmount)
+{
+	Super::HandleDamage(DamageAmount);
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
+	}
+}
+
 void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	const bool bShouldChaseTarget =
+		EnemyState != EEnemyState::EES_Dead &&
+		!IsChasing() &&
+		EnemyState < EEnemyState::EES_Attacking &&
+		Actor->ActorHasTag(FName("SlashCharacter"));
+
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Perception: Saw actor %s"), *Actor->GetName());
-		if (EnemyState == EEnemyState::EES_Chasing) return;
-		if (Actor->ActorHasTag(FName("SlashCharacter")))
+		if (bShouldChaseTarget)
 		{
-			GetWorldTimerManager().ClearTimer(PatrolTimer);
-			GetCharacterMovement()->MaxWalkSpeed = ChasingSpeed;
 			CombatTarget = Actor;
-			if (EnemyState != EEnemyState::EES_Attacking)
-			{
-				EnemyState = EEnemyState::EES_Chasing;
-				MoveToTarget(CombatTarget);
-			}
+			ClearPatrolTimer();
+			ChaseTarget();
 		}
 	}
 }
