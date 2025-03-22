@@ -2,24 +2,21 @@
 
 
 #include "Characters/Mereoleona.h"
-#include "Components/CapsuleComponent.h" // you need this header file to abe able to create a Capsule Component.
-#include "Components/SkeletalMeshComponent.h" // U need this header File to be able to create a Skeletal Mesh. 
-#include "EnhancedInputSubsystems.h" // To Be Able to Include this Header File you need to Adusjt .Build.cs file and add "EnhancedInput" in there. 
-#include "EnhancedInputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
-#include "Components/InputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
 #include "GameFramework/SpringArmComponent.h" // to be able to add Spring Arm Component you need to include this herder
 #include "Camera/CameraComponent.h" // to be able to add Camera Compoenent you need to include this Header. 
 #include "GameFramework/CharacterMovementComponent.h" // to be able to to use Character Movement Compoenent variables u need to include this header.
 #include "GroomComponent.h" // you need to include this header to use the Groom components functions and variables. also you need to add HairStrandsCore to .build.cs
+#include "EnhancedInputSubsystems.h" // To Be Able to Include this Header File you need to Adusjt .Build.cs file and add "EnhancedInput" in there. 
+#include "EnhancedInputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
+#include "Components/InputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
 #include "Items/Item.h"	// we need to include both Item.h and Weapon.h for us to be able to use E Equio Function. 
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h" // you need this header file to access the AnimMontage Functionality. 
-#include "Components/BoxComponent.h"
 
 
 AMereoleona::AMereoleona()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw= false;
@@ -50,6 +47,34 @@ AMereoleona::AMereoleona()
 
 }
 
+void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMereoleona::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMereoleona::Look);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMereoleona::Jump);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &AMereoleona::EKeyPressed);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMereoleona::Attack);
+	}
+}
+
+void AMereoleona::Jump()
+{
+	if ((ActionState == EActionState::EAS_Attacking) || (ActionState == EActionState::EAS_EquippingWeapon))
+	{
+		return;
+	}
+	if (bCanJump)
+	{
+		Super::Jump();
+		bCanJump = false;
+		bJumping = true;
+	}
+}
+
 void AMereoleona::BeginPlay()
 {
 	Super::BeginPlay();
@@ -76,24 +101,100 @@ void AMereoleona::CreateEnhancedInput()
 	}
 }
 
-void AMereoleona::Tick(float DeltaTime)
+void AMereoleona::EquipWeapon(AWeapon* Weapon)
 {
-	Super::Tick(DeltaTime);
+	// then we get the pointer and of tyoe AWeapon and access the Function Equip and pass in The mesh and the name of the socket.
+	Weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+	//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
+	CharacterState = Weapon->WeaponState;
+	EquippedWeapon = Weapon;
+	OverlappingItem = nullptr;
+	PossessState = EEquippingState::EES_Equipped;
+	InitAttackMontage(EquippedWeapon);
+}
 
-} 
-
-void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AMereoleona::AttackEnd()
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	ActionState = EActionState::EAS_Unoccupied;
+}
 
-	 if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
-    {
-        EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMereoleona::Move);
-        EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMereoleona::Look);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMereoleona::Jump);
-		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &AMereoleona::EKeyPressed);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMereoleona::Attack);
-    }
+bool AMereoleona::CanAttack()
+{
+	return ActionState == EActionState::EAS_Unoccupied &&
+		CharacterState != ECharacterState::ECS_Unequipped;
+}
+
+bool AMereoleona::CanDisarm()
+{
+	return (ActionState == EActionState::EAS_Unoccupied) && 
+	(CharacterState != ECharacterState::ECS_Unequipped) &&
+	(bJumping == false);
+}
+
+bool AMereoleona::CanArm()
+{
+	return (ActionState == EActionState::EAS_Unoccupied) && 
+	(CharacterState == ECharacterState::ECS_Unequipped) && 
+	(EquippedWeapon != nullptr) &&
+	(bJumping == false);
+}
+
+void AMereoleona::Disarm()
+{
+	PlayEquipMontage(FName("Unequip"));
+	CharacterState = ECharacterState::ECS_Unequipped;
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void AMereoleona::Arm()
+{
+	PlayEquipMontage(FName("Equip"));
+	if (EquippedWeapon)
+	{
+		CharacterState = EquippedWeapon->WeaponState;
+	}
+	else
+	{
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+	ActionState = EActionState::EAS_EquippingWeapon;
+}
+
+void AMereoleona::PlayEquipMontage(const FName& SectionName)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && EquipMontage)
+	{
+		AnimInstance->Montage_Play(EquipMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
+	}
+}
+
+void AMereoleona::AttackStart()
+{
+	ActionState = EActionState::EAS_Attacking;
+}
+
+void AMereoleona::AttachWeaponToBack()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+	}
+
+}
+
+void AMereoleona::AttachWeaponToHand()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+	}
+}
+
+void AMereoleona::FinishEquipping()
+{
+	ActionState = EActionState::EAS_Unoccupied;
 }
 
 void AMereoleona::Move(const FInputActionValue& Value)
@@ -126,21 +227,6 @@ void AMereoleona::Look(const FInputActionValue& Value)
     }
 }
 
-void AMereoleona::Jump()
-{
-	if ((ActionState == EActionState::EAS_Attacking) || (ActionState == EActionState::EAS_EquippingWeapon))
-	{
-
-		return;
-	}
-	if (bCanJump)
-	{
-		Super::Jump();
-		bCanJump = false;
-		bJumping = true; 
-	}
-}
-
 void AMereoleona::EKeyPressed()
 {
 	// To Equip a weapon onto the character mesh we first get the AWeapon pointer type and make a variable, then we Cast<AWeapon>(And assign the OverLapping function)
@@ -149,49 +235,20 @@ void AMereoleona::EKeyPressed()
 	// then we check the pointer to make sure it is not a nullptr.
 	if (OverlappingWeapon && (PossessState == EEquippingState::EES_Unequipped))
 	{
-		// then we get the pointer and of tyoe AWeapon and access the Function Equip and pass in The mesh and the name of the socket.
-		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-
-		//after Equipping the weapon we are setting the state of the Character to be EquippedOneHandedWeapon which we can use to set the animation blueprint 
-		CharacterState = OverlappingWeapon->WeaponState; 
-		EquippedWeapon = OverlappingWeapon;
-		OverlappingItem = nullptr; 
-		PossessState = EEquippingState::EES_Equipped; 
-		InitAttackMontage(EquippedWeapon);
+		EquipWeapon(OverlappingWeapon);
 	}
 	else
 	{
 		if (CanDisarm())
 		{
-			PlayEquipMontage(FName("Unequip"));
-			CharacterState = ECharacterState::ECS_Unequipped;
-			ActionState = EActionState::EAS_EquippingWeapon;
+			Disarm();
 		}
 		else if (CanArm())
 		{
-			PlayEquipMontage(FName("Equip"));
-			if (EquippedWeapon)
-			{
-				CharacterState = EquippedWeapon->WeaponState;
-			}
-			else
-			{
-				CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
-			}
-			ActionState = EActionState::EAS_EquippingWeapon;
+			Arm();
 		}
 	}
 	
-}
-
-bool AMereoleona::CanDisarm()
-{
-	return (ActionState == EActionState::EAS_Unoccupied) && (CharacterState != ECharacterState::ECS_Unequipped);
-}
-
-bool AMereoleona::CanArm()
-{
-	return (ActionState == EActionState::EAS_Unoccupied) && (CharacterState == ECharacterState::ECS_Unequipped) && (EquippedWeapon != nullptr);
 }
 
 void AMereoleona::Attack()
@@ -204,54 +261,4 @@ void AMereoleona::Attack()
 		PlayAttackMontage();
 		ActionState = EActionState::EAS_Attacking;
 	} 
-}
-
-bool AMereoleona::CanAttack()
-{
-    return ActionState == EActionState::EAS_Unoccupied && 
-		CharacterState != ECharacterState::ECS_Unequipped;
-}
-
-void AMereoleona::PlayEquipMontage(const FName& SectionName)
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && EquipMontage)
-	{
-		AnimInstance->Montage_Play(EquipMontage);
-		AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
-	}
-	
-	
-}
-
-void AMereoleona::AttackEnd()
-{
-	ActionState = EActionState::EAS_Unoccupied;
-}
-
-void AMereoleona::AttackStart()
-{
-	ActionState = EActionState::EAS_Attacking;
-}
-
-void AMereoleona::Disarm()
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
-	}
-	
-}
-
-void AMereoleona::Arm()
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
-	}
-}
-
-void AMereoleona::FinishEquipping()
-{
-	ActionState = EActionState::EAS_Unoccupied;
 }

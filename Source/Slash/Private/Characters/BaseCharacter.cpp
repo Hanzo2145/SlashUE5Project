@@ -3,11 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/AttributeComponent.h"
 #include "Components/CapsuleComponent.h"
-
-
 #include "Kismet/GameplayStatics.h"
-
-
 #include "Items/Weapons/Weapon.h"
 
 
@@ -17,6 +13,9 @@ ABaseCharacter::ABaseCharacter()
 
 	// Attribute Componenet
 	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attribute Component"));
+
+	//Disable Camera Collision Component
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 }
 

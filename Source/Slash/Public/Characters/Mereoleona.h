@@ -24,10 +24,8 @@ class SLASH_API AMereoleona : public ABaseCharacter
 	
 public:
 	AMereoleona();
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
-
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool bCanJump = true; 
@@ -41,13 +39,32 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetJumping(bool bactive) {bJumping = bactive;}
 
-
-
-
 protected:
 	virtual void BeginPlay() override;
-
 	void CreateEnhancedInput();
+	void EquipWeapon(AWeapon* Weapon);
+	//this will check to see if the attack ended and set the Action State to be Unoccupied
+	virtual void AttackEnd() override;
+	// this fucntion check and see if the player is not occupied with an action and if he has a weapon on.
+	virtual bool CanAttack() override;
+	bool CanDisarm();
+	bool CanArm();
+	void Disarm();
+	void Arm();
+	void PlayEquipMontage(const FName& SectionName);
+	
+	// this will set the ACtion state to be Attacking.	
+	UFUNCTION(BlueprintCallable)
+	void AttackStart();
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToBack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToHand();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
 
 	/*
 	* Add Input Actions 
@@ -78,35 +95,7 @@ protected:
 	// Added An Input Action Equip to the blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* AttackAction;
-	virtual void Attack() override;
-
-	/*
-		Play Montage Functions
-	*/
-
-	/*
-		Funtions and Variables that can decide things.
-	*/
-	//this will check to see if the attack ended and set the Action State to be Unoccupied
-	virtual void AttackEnd() override;
-	// this fucntion check and see if the player is not occupied with an action and if he has a weapon on.
-	virtual bool CanAttack() override;
-	// this will set the ACtion state to be Attacking.
-	UFUNCTION(BlueprintCallable)
-	void AttackStart();
-
-	void PlayEquipMontage(const FName& SectionName);
-	bool CanDisarm();
-	bool CanArm();
-
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
-
-	UFUNCTION(BlueprintCallable)
-	void Arm();
-
-	UFUNCTION(BlueprintCallable)
-	void FinishEquipping();
+	virtual void Attack() override;	
 
 private:
 	// Spring Arm Component
@@ -142,7 +131,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* EquipMontage;
 
-
+	UPROPERTY()
+	bool IsJumping;
 
 public:
 	//note: we have to use FORCEINLINE when create a setter and getters to force the compile to accept these functions.
