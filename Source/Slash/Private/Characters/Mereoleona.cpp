@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h" // to be able to add Spring Arm Component you need to include this herder
 #include "Camera/CameraComponent.h" // to be able to add Camera Compoenent you need to include this Header. 
 #include "GameFramework/CharacterMovementComponent.h" // to be able to to use Character Movement Compoenent variables u need to include this header.
+#include "Components/StaticMeshComponent.h"
 #include "GroomComponent.h" // you need to include this header to use the Groom components functions and variables. also you need to add HairStrandsCore to .build.cs
 #include "EnhancedInputSubsystems.h" // To Be Able to Include this Header File you need to Adusjt .Build.cs file and add "EnhancedInput" in there. 
 #include "EnhancedInputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
@@ -24,6 +25,12 @@ AMereoleona::AMereoleona()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true; 
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 560.f, 0.f); 
+
+	GetMesh()->SetGenerateOverlapEvents(true);
+	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	GetMesh()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 
 	// Created a SpringArm 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm Component"));
@@ -75,13 +82,19 @@ void AMereoleona::Jump()
 	}
 }
 
+void AMereoleona::GetHit_Implementation(const FVector& ImpactPoint)
+{
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);
+}
+
 void AMereoleona::BeginPlay()
 {
 	Super::BeginPlay();
 
 	CreateEnhancedInput();
 
-	Tags.Add(FName("SlashCharacter"));
+	Tags.Add(FName("EngageableTarget"));
 
 }
 

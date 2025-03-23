@@ -105,6 +105,7 @@ void AEnemy::BeginPlay()
 
 	if (AIPerceptionComponent) AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::OnTargetPerceptionUpdated);
 	InitializeEnemy();
+	Tags.Add(FName("Enemy"));
 }
 
 void AEnemy::Die()
@@ -364,7 +365,7 @@ void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		EnemyState != EEnemyState::EES_Dead &&
 		!IsChasing() &&
 		EnemyState < EEnemyState::EES_Attacking &&
-		Actor->ActorHasTag(FName("SlashCharacter"));
+		Actor->ActorHasTag(FName("EngageableTarget"));
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
