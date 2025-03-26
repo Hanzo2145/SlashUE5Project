@@ -7,7 +7,6 @@
 #include "Characters/CharacterTypes.h"
 #include "Weapon.generated.h"
 
-
 class USoundBase;
 class UBoxComponent;
 

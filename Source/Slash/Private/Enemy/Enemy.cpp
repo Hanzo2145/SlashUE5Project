@@ -10,7 +10,6 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "Items/Weapons/Weapon.h"
 
-
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
