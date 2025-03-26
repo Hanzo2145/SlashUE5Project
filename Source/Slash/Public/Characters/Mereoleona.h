@@ -26,7 +26,7 @@ public:
 	AMereoleona();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool bCanJump = true; 
@@ -66,6 +66,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
+
+	UFUNCTION(BlueprintCallable)
+	void HitReactEnd();
 
 	/*
 	* Add Input Actions 

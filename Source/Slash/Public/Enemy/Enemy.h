@@ -25,7 +25,7 @@ public:
 	/* </AActor> */
 
 	/** <IHitInterFace> */
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	/** <IHitInterFace> */
 
 protected:
@@ -49,6 +49,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	AActor* CombatTarget;
 	
 
 private:
@@ -101,17 +104,16 @@ private:
 	* Combat Variables
 	*/
 
-	UPROPERTY()
-	AActor* CombatTarget;
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Combat)
 	double CombatRadius = 900.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Combat)
 	double AttackRadius = 150.f;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	double AcceptanceRadius = 50.f;
+
+	
 
 	/*
 	* Navigation

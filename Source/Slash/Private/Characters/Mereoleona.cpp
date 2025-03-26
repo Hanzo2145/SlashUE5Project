@@ -82,10 +82,11 @@ void AMereoleona::Jump()
 	}
 }
 
-void AMereoleona::GetHit_Implementation(const FVector& ImpactPoint)
+void AMereoleona::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
-	PlayHitSound(ImpactPoint);
-	SpawnHitParticles(ImpactPoint);
+	Super::GetHit_Implementation(ImpactPoint, Hitter);
+	
+	ActionState = EActionState::EAS_HitReaction;
 }
 
 void AMereoleona::BeginPlay()
@@ -206,6 +207,11 @@ void AMereoleona::AttachWeaponToHand()
 }
 
 void AMereoleona::FinishEquipping()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void AMereoleona::HitReactEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 }

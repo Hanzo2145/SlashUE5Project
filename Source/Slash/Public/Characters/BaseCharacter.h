@@ -28,6 +28,10 @@ protected:
 	virtual void BeginPlay() override;
 	/** </AActor>*/
 
+	/*<HitInterface>*/
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	/*</HitInterface>*/
+
 	/** <ABaseCharacter>*/
 	virtual void Attack();
 	virtual void Die();
@@ -46,6 +50,7 @@ protected:
 	void SpawnHitParticles(const FVector& ImpactPoint);
 	bool IsAlive();
 	void DisableCapsule();
+	void StopAttackMontage();
 
 
 	UFUNCTION(BlueprintCallable)

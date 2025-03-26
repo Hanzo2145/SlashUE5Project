@@ -10,6 +10,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Interfaces/HitInterface.h"
 #include "NiagaraComponent.h"
+#include "Enemy/Enemy.h"
 
 AWeapon::AWeapon()
 {
@@ -37,6 +38,7 @@ void AWeapon::Equip(USceneComponent* InParent, FName InSocketName, AActor* NewOw
 {
     ItemState = EItemState::EIS_Equipped;
     SetOwner(NewOwner);
+    WeaponOwner = NewOwner;
     SetInstigator(NewInstigator);
     AttachMeshToSocket(InParent, InSocketName);
     DisableSphereCollision();
@@ -78,17 +80,17 @@ void AWeapon::AttachMeshToSocket(USceneComponent* InParent, const FName& InSocke
     ItemMesh->AttachToComponent(InParent, TransformRules, InSocketName); 
 }
 
-void AWeapon::OnBoxOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     if (ActorIsSameType(OtherActor)) return;
-    
     FHitResult BoxHit;
     BoxTrace(BoxHit);
-
-    if (BoxHit.GetActor())
+    AActor* HitActor = BoxHit.GetActor();
+    if (IsValid(HitActor))
     {
-        if (ActorIsSameType(BoxHit.GetActor())) return;
-        UGameplayStatics::ApplyDamage(BoxHit.GetActor(), Damage, GetInstigator()->GetController(), this, UDamageType::StaticClass());
+        if (ActorIsSameType(HitActor)) return;
+        
+        UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigator()->GetController(), this, UDamageType::StaticClass());
         ExecuteGetHit(BoxHit);
         CreateFields(BoxHit.ImpactPoint);
     }
@@ -104,35 +106,59 @@ void AWeapon::ExecuteGetHit(FHitResult& BoxHit)
     IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
     if (HitInterface)
     {
-        IHitInterface::Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+        HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint, GetOwner());
     }
 }
 
 void AWeapon::BoxTrace(FHitResult& BoxHit)
 {
+    if (!BoxTraceStart || !BoxTraceEnd)
+    {
+        UE_LOG(LogTemp, Error, TEXT("BoxTraceStart or BoxTraceEnd is null!"));
+        return;
+    }
+
+    AActor* MyOwner = GetOwner();
+    if (!IsValid(MyOwner))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Weapon has no valid owner!"));
+        return;
+    }
+
     const FVector Start = BoxTraceStart->GetComponentLocation();
     const FVector End = BoxTraceEnd->GetComponentLocation();
 
     TArray<AActor*> ActorsToIgnore;
-    /* this for loop will add all the actor that got hit to the variable ActorsToIgnore which we pass to the BoxTraceSingle
-    this way we won't hit the same enemy twice per hit.  */
+    ActorsToIgnore.Add(this);
+    ActorsToIgnore.Add(GetOwner());
+
     for (AActor* Actor : IgnoreActors)
     {
         ActorsToIgnore.AddUnique(Actor);
     }
 
-    ActorsToIgnore.Add(this);
-    UKismetSystemLibrary::BoxTraceSingle(this,
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
+
+    UKismetSystemLibrary::BoxTraceSingleForObjects(
+        this,
         Start,
         End,
         BoxTraceExtent,
         BoxTraceStart->GetComponentRotation(),
-        ETraceTypeQuery::TraceTypeQuery1,
-        false, ActorsToIgnore,
-        bShowBoxDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None, 
-        BoxHit, 
-        true
+        ObjectTypes, 
+        false,       
+        ActorsToIgnore,
+        bShowBoxDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+        BoxHit,
+        true         
     );
-    IgnoreActors.AddUnique(BoxHit.GetActor());
 
+    AActor* HitActor = BoxHit.GetActor();
+    if (!IsValid(HitActor))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("BoxTrace found no valid actor!"));
+        return;
+    }
+    IgnoreActors.AddUnique(BoxHit.GetActor());
 }

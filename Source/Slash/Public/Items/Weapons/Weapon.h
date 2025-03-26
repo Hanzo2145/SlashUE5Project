@@ -79,6 +79,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 	float Damage = 20.f;
 
+	AActor* WeaponOwner;
+
 public:
 	FORCEINLINE UBoxComponent* GetWeaponBox() const {return WeaponBox; }
 	

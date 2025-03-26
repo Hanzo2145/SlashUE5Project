@@ -25,6 +25,21 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	if (IsAlive() && Hitter)
+	{
+		DirectionalHitReact(Hitter->GetActorLocation());
+		SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else
+	{
+		Die();
+	}
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);
+}
+
 void ABaseCharacter::Attack()
 {
 }
@@ -155,6 +170,15 @@ void ABaseCharacter::DisableCapsule()
 	SetLifeSpan(DeathTimer);
 }
 
+void ABaseCharacter::StopAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Stop(0.25, AttackMontage);
+	}
+}
+
 bool ABaseCharacter::CanAttack()
 {
 	return false;
@@ -182,6 +206,7 @@ void ABaseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type Collision
 	{
 		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
 		EquippedWeapon->IgnoreActors.Empty();
+		UE_LOG(LogTemp, Warning, TEXT("Actor to Ignore are Empty"));
 	}
 }
 

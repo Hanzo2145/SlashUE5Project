@@ -71,7 +71,16 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	{
 		CombatTarget->OnDestroyed.AddDynamic(this, &AEnemy::OnTargetDestroyed);
 	}
-	ChaseTarget();
+
+
+	if (IsInsideAttackRadius())
+	{
+		EnemyState = EEnemyState::EES_Attacking;
+	}
+	else if (IsOutsideAttackRadius())
+	{
+		ChaseTarget();
+	}
 	return DamageAmount;
 }
 
@@ -83,20 +92,13 @@ void AEnemy::Destroyed()
 	}
 }
 
-void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
-	ShowHealthBar();
-
-	if (IsAlive())
-	{
-		DirectionalHitReact(ImpactPoint);
-	}
-	else
-	{
-		Die();
-	}
-	PlayHitSound(ImpactPoint);
-	SpawnHitParticles(ImpactPoint);
+	Super::GetHit_Implementation(ImpactPoint, Hitter);
+	if (!IsDead()) ShowHealthBar();
+	ClearPatrolTimer();
+	ClearAttackTimer();
+	StopAttackMontage();
 }
 
 void AEnemy::BeginPlay()
@@ -104,21 +106,23 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	if (AIPerceptionComponent) AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemy::OnTargetPerceptionUpdated);
-	InitializeEnemy();
 	Tags.Add(FName("Enemy"));
+	InitializeEnemy();
 }
 
 void AEnemy::Die()
 {
-	if (EnemyController)
-	{
-		EnemyController->StopMovement();
-	}
 	EnemyState = EEnemyState::EES_Dead;
 	PlayDeathMontage();
 	ClearAttackTimer();
 	DisableCapsule();
 	HideHealthBar();
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (EnemyController)
+	{
+		EnemyController->StopMovement();
+	}
+
 }
 
 void AEnemy::Attack()
@@ -181,18 +185,18 @@ void AEnemy::CheckCombatTarget()
 		ClearAttackTimer();
 		LoseInterest();
 		if (!IsEngaged()) StartPatrolling();
-		UE_LOG(LogTemp, Warning, TEXT("Lose Interest"));
+		//UE_LOG(LogTemp, Warning, TEXT("Lose Interest"));
 	}
 	else if (IsOutsideAttackRadius() && !IsChasing())
 	{
 		ClearAttackTimer();
 		if (!IsEngaged()) ChaseTarget();
-		UE_LOG(LogTemp, Warning, TEXT("Chase Player"));
+		//UE_LOG(LogTemp, Warning, TEXT("Chase Player"));
 	}
 	else if (CanAttack())
 	{
 		StartAttackTimer();
-		UE_LOG(LogTemp, Warning, TEXT("Attack"));
+		//UE_LOG(LogTemp, Warning, TEXT("Attack"));
 	}
 }
 
@@ -282,7 +286,7 @@ void AEnemy::StartAttackTimer()
 	EnemyState = EEnemyState::EES_Attacking;
 	const float AttackTime = FMath::RandRange(AttackMin, AttackMax);
 	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
-	UE_LOG(LogTemp, Warning, TEXT("Start Attack Timer Was set, Enemy will attack again in %f"), AttackTime);
+	//UE_LOG(LogTemp, Warning, TEXT("Start Attack Timer Was set, Enemy will attack again in %f"), AttackTime);
 }
 
 void AEnemy::ClearAttackTimer()
