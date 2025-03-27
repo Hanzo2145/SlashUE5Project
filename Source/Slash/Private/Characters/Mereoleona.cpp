@@ -7,12 +7,15 @@
 #include "GameFramework/CharacterMovementComponent.h" // to be able to to use Character Movement Compoenent variables u need to include this header.
 #include "Components/StaticMeshComponent.h"
 #include "GroomComponent.h" // you need to include this header to use the Groom components functions and variables. also you need to add HairStrandsCore to .build.cs
+#include "Components/AttributeComponent.h"
 #include "EnhancedInputSubsystems.h" // To Be Able to Include this Header File you need to Adusjt .Build.cs file and add "EnhancedInput" in there. 
 #include "EnhancedInputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
 #include "Components/InputComponent.h" // to be able to Enhanced Input Action delation u need to use this header 
 #include "Items/Item.h"	// we need to include both Item.h and Weapon.h for us to be able to use E Equio Function. 
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h" // you need this header file to access the AnimMontage Functionality. 
+#include "HUD/SlashHUD.h"
+#include "HUD/SlashOverlay.h"
 
 
 AMereoleona::AMereoleona()
@@ -70,7 +73,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AMereoleona::Jump()
 {
-	if ((ActionState == EActionState::EAS_Attacking) || (ActionState == EActionState::EAS_EquippingWeapon))
+	if (CantJump())
 	{
 		return;
 	}
@@ -89,6 +92,13 @@ void AMereoleona::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitt
 	ActionState = EActionState::EAS_HitReaction;
 }
 
+float AMereoleona::TakeDamage(float DamageAmount, FDamageEvent const &DamageEvent, AController *EventInstigator, AActor *DamageCauser)
+{
+	HandleDamage(DamageAmount);
+	SetHUDHealth();
+    return DamageAmount;
+}
+
 void AMereoleona::BeginPlay()
 {
 	Super::BeginPlay();
@@ -96,7 +106,7 @@ void AMereoleona::BeginPlay()
 	CreateEnhancedInput();
 
 	Tags.Add(FName("EngageableTarget"));
-
+	InitializeSlashOverlay();
 }
 
 void AMereoleona::CreateEnhancedInput()
@@ -280,4 +290,37 @@ void AMereoleona::Attack()
 		PlayAttackMontage();
 		ActionState = EActionState::EAS_Attacking;
 	} 
+}
+
+void AMereoleona::InitializeSlashOverlay()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		ASlashHUD* SlashHUD = Cast<ASlashHUD>(PlayerController->GetHUD());
+		if (SlashHUD)
+		{
+			SlashOverlay = SlashHUD->GetSlashOverlay();
+			if (SlashOverlay && Attributes)
+			{
+				SlashOverlay->SetHealthPercent(Attributes->GetHealthPercent());
+				SlashOverlay->SetStaminaPercent(.8f);
+				SlashOverlay->SetGold(0);
+				SlashOverlay->SetSouls(0);
+			}	
+		}
+	}
+}
+
+void AMereoleona::SetHUDHealth()
+{
+	if (SlashOverlay && Attributes)
+	{
+		SlashOverlay->SetHealthPercent(Attributes->GetHealthPercent());
+	}
+}
+
+bool AMereoleona::CantJump()
+{
+    return (ActionState == EActionState::EAS_Attacking) || (ActionState == EActionState::EAS_EquippingWeapon) || (ActionState == EActionState::EAS_HitReaction);
 }
