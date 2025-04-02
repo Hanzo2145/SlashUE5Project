@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces\HitInterface.h"
+#include "Characters/CharacterTypes.h"
 #include "BaseCharacter.generated.h"
 
 class AWeapon;
@@ -51,6 +52,7 @@ protected:
 	bool IsAlive();
 	void DisableCapsule();
 	void StopAttackMontage();
+	void DisableMeshCollision();
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetTranslationWarpTarget();
@@ -83,6 +85,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	double WarpTargetDistance = 75.f;
 
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<EDeathPose> DeathPose;
+
 private:
 
 	void PlayMontageSection(UAnimMontage* Montage, const FName& SectionName);
@@ -107,5 +112,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	TArray<FName> DeathMontageSections;
+public:
 
+	FORCEINLINE TEnumAsByte<EDeathPose> GetDeathPose()const { return DeathPose; }
 };
+

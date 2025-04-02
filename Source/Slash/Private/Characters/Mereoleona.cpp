@@ -89,7 +89,20 @@ void AMereoleona::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitt
 {
 	Super::GetHit_Implementation(ImpactPoint, Hitter);
 	
-	ActionState = EActionState::EAS_HitReaction;
+	if (Attributes && Attributes->GetHealthPercent() > 0.f)
+	{
+		ActionState = EActionState::EAS_HitReaction;
+	}
+}
+
+void AMereoleona::SetoverlappingItem(AItem* Item)
+{
+	OverlappingItem = Item;
+}
+
+void AMereoleona::AddSouls(ASoul* Soul)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AMereoleona::AddSouls"));
 }
 
 float AMereoleona::TakeDamage(float DamageAmount, FDamageEvent const &DamageEvent, AController *EventInstigator, AActor *DamageCauser)
@@ -192,6 +205,15 @@ void AMereoleona::PlayEquipMontage(const FName& SectionName)
 		AnimInstance->Montage_Play(EquipMontage);
 		AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
 	}
+}
+
+void AMereoleona::Die()
+{
+	Super::Die();
+	ActionState = EActionState::EAS_Dead;
+	DisableMeshCollision();	
+	DisableCapsule();
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AMereoleona::AttackStart()

@@ -111,8 +111,9 @@ void AEnemy::BeginPlay()
 
 void AEnemy::Die()
 {
+	Super::Die();
+	
 	EnemyState = EEnemyState::EES_Dead;
-	PlayDeathMontage();
 	ClearAttackTimer();
 	DisableCapsule();
 	HideHealthBar();
@@ -126,8 +127,10 @@ void AEnemy::Die()
 
 void AEnemy::Attack()
 {
-	EnemyState = EEnemyState::EES_Engaged;
 	Super::Attack();
+	if (CombatTarget == nullptr) return;
+
+	EnemyState = EEnemyState::EES_Engaged;
 	PlayAttackMontage();
 }
 
@@ -154,17 +157,6 @@ void AEnemy::HandleDamage(float DamageAmount)
 	{
 		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
 	}
-}
-
-int32 AEnemy::PlayDeathMontage()
-{
-	const int32 Selection = Super::PlayDeathMontage();
-	TEnumAsByte<EDeathPose> Pose(Selection);
-	if (Pose < EDeathPose::EDP_MAX)
-	{
-		DeathPose = Pose;
-	}
-	return Selection;
 }
 
 void AEnemy::CheckPatrolTarget()
@@ -368,7 +360,8 @@ void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		EnemyState != EEnemyState::EES_Dead &&
 		!IsChasing() &&
 		EnemyState < EEnemyState::EES_Attacking &&
-		Actor->ActorHasTag(FName("EngageableTarget"));
+		Actor->ActorHasTag(FName("EngageableTarget")) &&
+		!Actor->ActorHasTag(FName("Dead"));
 
 	if (Stimulus.WasSuccessfullySensed())
 	{

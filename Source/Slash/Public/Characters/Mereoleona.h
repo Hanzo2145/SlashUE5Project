@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "InputActionValue.h"
+#include "Interfaces/PickupInterface.h"
 #include "Characters/CharacterTypes.h" //make sure to include the header file to make sure u can create the enum
 #include "Mereoleona.generated.h"
 
@@ -17,9 +18,10 @@ class AItem;
 class UAnimMontage;
 class AWeapon;
 class USlashOverlay;
+class ASoul;
 
 UCLASS()
-class SLASH_API AMereoleona : public ABaseCharacter
+class SLASH_API AMereoleona : public ABaseCharacter, public IPickupInterface
 {
 	GENERATED_BODY()
 	
@@ -28,6 +30,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	virtual void SetoverlappingItem(AItem* Item);
+	virtual void AddSouls(ASoul* Soul) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
@@ -55,6 +59,7 @@ protected:
 	void Disarm();
 	void Arm();
 	void PlayEquipMontage(const FName& SectionName);
+	virtual void Die() override;
 
 
 	
@@ -148,12 +153,10 @@ private:
 	UPROPERTY()
 	USlashOverlay* SlashOverlay;
 public:
-	//note: we have to use FORCEINLINE when create a setter and getters to force the compile to accept these functions.
-	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; } 
-
 	//we are making a public getter for the variable Character State so we can use it inside of the SlashAnimInstance
 	// A good policy is to make the getters const since u don't want them to change anything but only report what happened.
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 
+	FORCEINLINE EActionState GetActionState() const { return ActionState; }	
 
 };
