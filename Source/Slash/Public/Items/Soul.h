@@ -23,5 +23,11 @@ protected:
 
 private:
 
-	
+	UPROPERTY(EditAnywhere, Category = "Soul Properties")
+	int32 Souls;
+
+public:
+
+	FORCEINLINE int32 GetSouls() const { return Souls; }
+	FORCEINLINE void SetSoulsAmount(int32 NumberOfSouls) { Souls = NumberOfSouls; }
 };

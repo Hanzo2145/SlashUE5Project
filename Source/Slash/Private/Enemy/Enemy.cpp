@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Items/Weapons/Weapon.h"
+#include "Items/Soul.h"
 
 AEnemy::AEnemy()
 {
@@ -112,17 +113,31 @@ void AEnemy::BeginPlay()
 void AEnemy::Die()
 {
 	Super::Die();
-	
 	EnemyState = EEnemyState::EES_Dead;
 	ClearAttackTimer();
-	DisableCapsule();
 	HideHealthBar();
 	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 	if (EnemyController)
 	{
 		EnemyController->StopMovement();
 	}
+	SpawnSoul();
+}
 
+void AEnemy::SpawnSoul()
+{
+	UWorld* World = GetWorld();
+	if (World && SoulClass && Attributes)
+	{
+		const FVector SoulsLocaiton = GetActorLocation() + SpawnLocation;
+		ASoul* SpawnedSoul = World->SpawnActor<ASoul>(SoulClass, SoulsLocaiton, GetActorRotation());
+		UE_LOG(LogTemp, Warning, TEXT("Spawn Soul"));
+		if (SpawnedSoul)
+		{
+			SpawnedSoul->SetSoulsAmount(Attributes->GetSouls());
+			UE_LOG(LogTemp, Warning, TEXT("Soul Amount was set"));
+		}
+	}
 }
 
 void AEnemy::Attack()

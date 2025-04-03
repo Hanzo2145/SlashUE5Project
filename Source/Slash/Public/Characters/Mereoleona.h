@@ -19,6 +19,7 @@ class UAnimMontage;
 class AWeapon;
 class USlashOverlay;
 class ASoul;
+class ATreasure;
 
 UCLASS()
 class SLASH_API AMereoleona : public ABaseCharacter, public IPickupInterface
@@ -27,11 +28,13 @@ class SLASH_API AMereoleona : public ABaseCharacter, public IPickupInterface
 	
 public:
 	AMereoleona();
+	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	virtual void SetoverlappingItem(AItem* Item);
 	virtual void AddSouls(ASoul* Soul) override;
+	virtual void AddGold(ATreasure* Treasure) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
@@ -52,6 +55,7 @@ protected:
 	void EquipWeapon(AWeapon* Weapon);
 	//this will check to see if the attack ended and set the Action State to be Unoccupied
 	virtual void AttackEnd() override;
+	virtual void DodgeEnd() override;
 	// this fucntion check and see if the player is not occupied with an action and if he has a weapon on.
 	virtual bool CanAttack() override;
 	bool CanDisarm();
@@ -60,6 +64,8 @@ protected:
 	void Arm();
 	void PlayEquipMontage(const FName& SectionName);
 	virtual void Die() override;
+	bool HasEnoughStamina();
+	bool IsOccupied();
 
 
 	
@@ -109,6 +115,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* AttackAction;
 	virtual void Attack() override;	
+
+	// Added An Input Action Dodge to the blueprint
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* DodgeAction;
+	void Dodge();
+
 
 private:
 	void InitializeSlashOverlay();

@@ -2,21 +2,17 @@
 
 
 #include "Items/Treasure.h"
-#include "Characters\Mereoleona.h"
-#include "Kismet/GameplayStatics.h"
+#include "Interfaces/PickupInterface.h"
 
 void ATreasure::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// To make the character equip a weapon first we cast to the player by making a pointer of type Character then assinging it to the OtherActor. making sure the other actor is Character.
-	AMereoleona* SlashCharacter = Cast<AMereoleona>(OtherActor);
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
 
-	// then we check the pointer value to make sure it is not a nullptr
-	if (SlashCharacter)
+	if (PickupInterface)
 	{
-		if (PickupSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, PickupSound, GetActorLocation());
-		}
+		PickupInterface->AddGold(this);
+		SpawnPickupSound();
 		Destroy();
 	}
+	
 }

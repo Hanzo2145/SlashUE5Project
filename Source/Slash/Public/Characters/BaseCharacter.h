@@ -39,9 +39,12 @@ protected:
 	virtual void HandleDamage(float DamageAmount);
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();
+	virtual void PlayDodgeMontage();
 	virtual bool CanAttack();
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
+	UFUNCTION(BlueprintCallable)
+	virtual void DodgeEnd();
 	/** </ABaseCharacter>*/
 
 	void InitAttackMontage(AWeapon* NewWeapon);
@@ -107,6 +110,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* DeathMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* DodgeMontage;
 
 	TArray<FName> AttackMontageSections;
 

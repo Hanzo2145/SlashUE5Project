@@ -16,11 +16,13 @@
 #include "Animation/AnimMontage.h" // you need this header file to access the AnimMontage Functionality. 
 #include "HUD/SlashHUD.h"
 #include "HUD/SlashOverlay.h"
+#include "Items/Soul.h"
+#include "Items/Treasure.h"
 
 
 AMereoleona::AMereoleona()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw= false;
@@ -57,6 +59,15 @@ AMereoleona::AMereoleona()
 
 }
 
+void AMereoleona::Tick(float DeltaTime)
+{
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->RegenStamina(DeltaTime);
+		SlashOverlay->SetStaminaPercent(Attributes->GetStamainaPercent());
+	}
+}
+
 void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -68,6 +79,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMereoleona::Jump);
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &AMereoleona::EKeyPressed);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMereoleona::Attack);
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &AMereoleona::Dodge);
 	}
 }
 
@@ -102,7 +114,20 @@ void AMereoleona::SetoverlappingItem(AItem* Item)
 
 void AMereoleona::AddSouls(ASoul* Soul)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AMereoleona::AddSouls"));
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->AddSouls(Soul->GetSouls());
+		SlashOverlay->SetSouls(Attributes->GetSouls());
+	}
+}
+
+void AMereoleona::AddGold(ATreasure* Treasure)
+{
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->AddGold(Treasure->GetGold());
+		SlashOverlay->SetGold(Attributes->GetGold());
+	}
 }
 
 float AMereoleona::TakeDamage(float DamageAmount, FDamageEvent const &DamageEvent, AController *EventInstigator, AActor *DamageCauser)
@@ -152,6 +177,13 @@ void AMereoleona::EquipWeapon(AWeapon* Weapon)
 
 void AMereoleona::AttackEnd()
 {
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void AMereoleona::DodgeEnd()
+{
+	Super::DodgeEnd();
+
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
@@ -214,6 +246,16 @@ void AMereoleona::Die()
 	DisableMeshCollision();	
 	DisableCapsule();
 	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+bool AMereoleona::HasEnoughStamina()
+{
+	return Attributes && Attributes->GetStamina() > Attributes->GetDodgeCost();
+}
+
+bool AMereoleona::IsOccupied()
+{
+	return ActionState != EActionState::EAS_Unoccupied;
 }
 
 void AMereoleona::AttackStart()
@@ -312,6 +354,18 @@ void AMereoleona::Attack()
 		PlayAttackMontage();
 		ActionState = EActionState::EAS_Attacking;
 	} 
+}
+
+void AMereoleona::Dodge()
+{
+	if (IsOccupied() || !HasEnoughStamina()) return;
+	PlayDodgeMontage();
+	ActionState = EActionState::EAS_Dodge;
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->UseStamina(Attributes->GetDodgeCost());
+		SlashOverlay->SetStaminaPercent(Attributes->GetStamainaPercent());
+	}
 }
 
 void AMereoleona::InitializeSlashOverlay()

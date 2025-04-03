@@ -37,6 +37,7 @@ protected:
 
 	/* <ABaseCharacter> */
 	virtual void Die() override;
+	void SpawnSoul();
 	virtual void Attack() override;
 	virtual bool CanAttack() override;
 	virtual void AttackEnd() override;
@@ -145,4 +146,10 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float ChasingSpeed = 300.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FVector SpawnLocation = FVector(0.f, 0.f, 25.f);
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TSubclassOf<class ASoul> SoulClass;
 };

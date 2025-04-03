@@ -24,4 +24,5 @@ class SLASH_API IPickupInterface
 public:
 	virtual void SetoverlappingItem(class AItem* Item);
 	virtual void AddSouls(class ASoul* Soul);
+	virtual void AddGold(class ATreasure* Treasure);
 };
