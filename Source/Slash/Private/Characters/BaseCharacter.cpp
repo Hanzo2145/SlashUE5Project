@@ -184,6 +184,11 @@ void ABaseCharacter::PlayDodgeMontage()
 	PlayMontageSection(DodgeMontage, FName("Dodge"));
 }
 
+void ABaseCharacter::PlayHealingMontage()
+{
+	PlayMontageSection(HealMontage, FName("Healing"));
+}
+
 void ABaseCharacter::DisableCapsule()
 {
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

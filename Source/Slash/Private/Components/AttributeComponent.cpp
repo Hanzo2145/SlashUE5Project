@@ -58,7 +58,16 @@ void UAttributeComponent::AddGold(int32 AmountOfGold)
 	Gold += AmountOfGold;
 }
 
+float UAttributeComponent::HealPlayer(float Amount)
+{
+	Health = FMath::Clamp(Health + Amount, 0.f, MaxHealth);
+	return Health;
+}
 
+int32 UAttributeComponent::SubHealingCharges(int32 Amount)
+{
+    return HealingCharges -= Amount;
+}
 
 void UAttributeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

@@ -66,7 +66,7 @@ protected:
 	virtual void Die() override;
 	bool HasEnoughStamina();
 	bool IsOccupied();
-
+	bool CanHeal();
 
 	
 	// this will set the ACtion state to be Attacking.	
@@ -84,6 +84,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void HitReactEnd();
+
+	UFUNCTION(BlueprintCallable)
+	void HealingEnd();
 
 	/*
 	* Add Input Actions 
@@ -120,7 +123,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* DodgeAction;
 	void Dodge();
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* HealAction;
+	void Heal();
 
 private:
 	void InitializeSlashOverlay();

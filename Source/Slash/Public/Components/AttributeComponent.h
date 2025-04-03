@@ -49,6 +49,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Actor Attribute")
 	float StaminaRegenRate = 5.f;
 
+	UPROPERTY(EditAnywhere, Category = "Actor Attribute")
+	float HealingAmount;
+
+	UPROPERTY(EditAnywhere, Category = "Actor Attribute")
+	int32 HealingCharges = 5;
+
 public:
 	void ReceiveDamage(float Damage); 
 	void UseStamina(float StaminaCost);
@@ -57,11 +63,14 @@ public:
 	bool IsAlive();
 	void AddSouls(int32 NumberOfSouls);
 	void AddGold(int32 AmountOfGold);
+	float HealPlayer(float Amount);
+	int32 SubHealingCharges(int32 Amount);
 
 	FORCEINLINE int32 GetGold() const { return Gold; }
 	FORCEINLINE int32 GetSouls() const { return Souls; }
 	FORCEINLINE float GetDodgeCost() const { return DodgeCost; }
 	FORCEINLINE float GetStamina() const { return Stamina;  }
-
+	FORCEINLINE float GetHealingAmount() const { return HealingAmount; }
+	FORCEINLINE float GetHealingCharges() const { return HealingCharges; }
 		
 };

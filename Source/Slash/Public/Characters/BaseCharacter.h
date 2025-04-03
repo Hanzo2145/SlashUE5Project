@@ -40,6 +40,7 @@ protected:
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();
 	virtual void PlayDodgeMontage();
+	virtual void PlayHealingMontage();
 	virtual bool CanAttack();
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
@@ -113,6 +114,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* DodgeMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	UAnimMontage* HealMontage;
 
 	TArray<FName> AttackMontageSections;
 

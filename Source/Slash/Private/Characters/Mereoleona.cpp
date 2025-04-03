@@ -80,6 +80,7 @@ void AMereoleona::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &AMereoleona::EKeyPressed);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMereoleona::Attack);
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &AMereoleona::Dodge);
+		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Started, this, &AMereoleona::Heal);
 	}
 }
 
@@ -258,6 +259,11 @@ bool AMereoleona::IsOccupied()
 	return ActionState != EActionState::EAS_Unoccupied;
 }
 
+bool AMereoleona::CanHeal()
+{
+    return !(Attributes->GetHealingCharges() > 0);
+}
+
 void AMereoleona::AttackStart()
 {
 	ActionState = EActionState::EAS_Attacking;
@@ -286,6 +292,11 @@ void AMereoleona::FinishEquipping()
 }
 
 void AMereoleona::HitReactEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+void AMereoleona::HealingEnd()
 {
 	ActionState = EActionState::EAS_Unoccupied;
 }
@@ -365,6 +376,19 @@ void AMereoleona::Dodge()
 	{
 		Attributes->UseStamina(Attributes->GetDodgeCost());
 		SlashOverlay->SetStaminaPercent(Attributes->GetStamainaPercent());
+	}
+}
+
+void AMereoleona::Heal()
+{
+	if (IsOccupied() || CanHeal()) return;
+	PlayHealingMontage();
+	ActionState = EActionState::EAS_Healing;
+	if (Attributes && SlashOverlay)
+	{
+		Attributes->HealPlayer(Attributes->GetHealingAmount());
+		SlashOverlay->SetHealthPercent(Attributes->GetHealthPercent());
+		Attributes->SubHealingCharges(1);
 	}
 }
 
