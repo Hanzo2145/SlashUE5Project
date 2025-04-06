@@ -88,6 +88,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void HealingEnd();
 
+	UFUNCTION(BlueprintCallable)
+	void DodgeStart();
+
 	/*
 	* Add Input Actions 
 	*/

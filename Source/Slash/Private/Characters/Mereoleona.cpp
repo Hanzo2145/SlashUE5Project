@@ -184,8 +184,8 @@ void AMereoleona::AttackEnd()
 void AMereoleona::DodgeEnd()
 {
 	Super::DodgeEnd();
-
 	ActionState = EActionState::EAS_Unoccupied;
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 }
 
 bool AMereoleona::CanAttack()
@@ -301,6 +301,12 @@ void AMereoleona::HealingEnd()
 	ActionState = EActionState::EAS_Unoccupied;
 }
 
+void AMereoleona::DodgeStart()
+{
+	ActionState = EActionState::EAS_Dodge;
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Ignore);
+}
+
 void AMereoleona::Move(const FInputActionValue& Value)
 {
 	if (ActionState != EActionState::EAS_Unoccupied)
@@ -371,7 +377,6 @@ void AMereoleona::Dodge()
 {
 	if (IsOccupied() || !HasEnoughStamina()) return;
 	PlayDodgeMontage();
-	ActionState = EActionState::EAS_Dodge;
 	if (Attributes && SlashOverlay)
 	{
 		Attributes->UseStamina(Attributes->GetDodgeCost());

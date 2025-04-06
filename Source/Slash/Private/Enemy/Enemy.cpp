@@ -99,6 +99,10 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 	ClearPatrolTimer();
 	ClearAttackTimer();
 	StopAttackMontage();
+	if (IsInsideAttackRadius())
+	{
+		if (!IsDead())	StartAttackTimer();
+	}
 }
 
 void AEnemy::BeginPlay()
@@ -129,7 +133,7 @@ void AEnemy::SpawnSoul()
 	UWorld* World = GetWorld();
 	if (World && SoulClass && Attributes)
 	{
-		const FVector SoulsLocaiton = GetActorLocation() + SpawnLocation;
+		const FVector SoulsLocaiton = GetActorLocation() + SoulsSpawnLocation;
 		ASoul* SpawnedSoul = World->SpawnActor<ASoul>(SoulClass, SoulsLocaiton, GetActorRotation());
 		UE_LOG(LogTemp, Warning, TEXT("Spawn Soul"));
 		if (SpawnedSoul)

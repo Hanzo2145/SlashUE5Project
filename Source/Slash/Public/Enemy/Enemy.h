@@ -148,7 +148,7 @@ private:
 	float ChasingSpeed = 300.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	FVector SpawnLocation = FVector(0.f, 0.f, 25.f);
+	FVector SoulsSpawnLocation = FVector(0.f, 0.f, 25.f);
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TSubclassOf<class ASoul> SoulClass;
