@@ -114,9 +114,9 @@ void AEnemy::BeginPlay()
 	InitializeEnemy();
 }
 
-void AEnemy::Die()
+void AEnemy::Die_Implementation()
 {
-	Super::Die();
+	Super::Die_Implementation();
 	EnemyState = EEnemyState::EES_Dead;
 	ClearAttackTimer();
 	HideHealthBar();
@@ -139,7 +139,7 @@ void AEnemy::SpawnSoul()
 		if (SpawnedSoul)
 		{
 			SpawnedSoul->SetSoulsAmount(Attributes->GetSouls());
-			UE_LOG(LogTemp, Warning, TEXT("Soul Amount was set"));
+			SpawnedSoul->SetOwner(this);
 		}
 	}
 }

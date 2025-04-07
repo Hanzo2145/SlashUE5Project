@@ -35,7 +35,7 @@ void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* H
 	}
 	else
 	{
-		Die();
+		Die_Implementation();
 	}
 	PlayHitSound(ImpactPoint);
 	SpawnHitParticles(ImpactPoint);
@@ -49,7 +49,7 @@ void ABaseCharacter::Attack()
 	}
 }
 
-void ABaseCharacter::Die()
+void ABaseCharacter::Die_Implementation()
 {
 	DisableMeshCollision();
 	DisableCapsule();

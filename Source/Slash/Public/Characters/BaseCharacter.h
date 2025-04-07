@@ -35,7 +35,10 @@ protected:
 
 	/** <ABaseCharacter>*/
 	virtual void Attack();
-	virtual void Die();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Combat")
+	void Die();
+
 	virtual void HandleDamage(float DamageAmount);
 	virtual int32 PlayAttackMontage();
 	virtual int32 PlayDeathMontage();

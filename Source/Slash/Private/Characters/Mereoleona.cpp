@@ -240,9 +240,9 @@ void AMereoleona::PlayEquipMontage(const FName& SectionName)
 	}
 }
 
-void AMereoleona::Die()
+void AMereoleona::Die_Implementation()
 {
-	Super::Die();
+	Super::Die_Implementation();
 	ActionState = EActionState::EAS_Dead;
 	DisableMeshCollision();	
 	DisableCapsule();
